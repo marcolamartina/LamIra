@@ -1,0 +1,5 @@
+esci dal programma
+stop
+chiudi l'applicazione
+smetti di riprodurre il programma
+arresta il programma

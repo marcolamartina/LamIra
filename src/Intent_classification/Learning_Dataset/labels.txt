@@ -1,0 +1,6 @@
+general_learn #Cosa è questo?
+texture_learn #Che tessitura ha questo oggetto?
+color_learn #Che colore ha questo oggetto?
+shape_learn #Che forma ha questo oggetto?
+exit #Esci dal programma
+grounding_mode #Entra il modalità addestramento

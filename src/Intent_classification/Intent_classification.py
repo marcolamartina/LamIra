@@ -12,7 +12,8 @@ warnings.filterwarnings('ignore')
 os.environ["TOKENIZERS_PARALLELISM"] = "false"
 
 # define bert
-berts={"it-IT":"bert-base-multilingual-cased", "en-US":"bert-base-uncased"}  
+berts={"it-IT":"bert-base-multilingual-cased", "en-US":"bert-base-uncased"}
+classifications={"grounding":"Grounding_Dataset", "learning":"Learning_Dataset"}  
 
 # define maximum sequence length
 max_seq_len=9
@@ -67,16 +68,20 @@ class BERT_Arch(nn.Module):
         return x
 
 class Intent_classification:
-    def __init__(self,verbose=False,device_type="cpu",language="it-IT"):
-        path = os.path.join(data_dir_intent_classification,"Weights","topic_saved_weights.pt")
+    def __init__(self,verbose=False,device_type="cpu",language="it-IT", class_type="grounding"): #grounding/learning
         self.verbose=verbose
-        self.device = torch.device(device_type)
+        self.device = torch.device(device_type)       
+        self.tokenizer = BertTokenizer.from_pretrained(berts[language])
+        self.set_class_type(class_type)
+        self.class_type=class_type
+
+    def set_class_type(self, class_type):
+        path = os.path.join(data_dir_intent_classification,"Weights",class_type+"_saved_weights.pt")
         checkpoint = torch.load(path,map_location=self.device)
         self.predictor = checkpoint.get("model")
-        self.tokenizer = BertTokenizer.from_pretrained(berts[language])
         self.tag = checkpoint.get("id_map")
 
-    def predict(self,text):
+    def predict(self, text):
         tokens = self.tokenizer.tokenize(text)
         tokens = tokens[:max_seq_len - 2]
         tokens = ['[CLS]'] + tokens + ['[SEP]']

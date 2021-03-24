@@ -1,5 +1,6 @@
 general_query #Cosa è questo?
-training #Questa è una pallina
 texture_query #Che tessitura ha questo oggetto?
 color_query #Che colore ha questo oggetto?
 shape_query #Che forma ha questo oggetto?
+exit #Esci dal programma
+training_mode #Entra il modalità addestramento

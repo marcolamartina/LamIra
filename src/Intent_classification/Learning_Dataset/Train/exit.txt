@@ -1,0 +1,15 @@
+esci
+interrompi
+arresta
+esci dal programma
+interrompi esecuzione
+stop
+chiudi
+chiudi il programma
+chiudi l'applicazione
+esci dall'applicazione
+exit
+finisci l'esecuzione
+smetti di riprodurre il programma
+arresta l'esecuzione
+arresta il programma
