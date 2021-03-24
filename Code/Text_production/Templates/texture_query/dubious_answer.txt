@@ -1,0 +1,3 @@
+Potrebbe essere {label} o {label_a}
+Dovrebbe essere {label} o anche {label_a}
+Sono indeciso tra {label} e {label_a}

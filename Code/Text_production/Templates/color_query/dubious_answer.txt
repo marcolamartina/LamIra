@@ -1,0 +1,3 @@
+Potrebbe essere {art_def}{label} o {art_def_a}{label_a}
+Il colore dovrebbe essere {art_def}{label} o anche {art_def_a}{label_a}
+Sono indeciso tra {label} e {label_a}

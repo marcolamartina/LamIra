@@ -1,0 +1,6 @@
+{label}		oggetto
+{label_a}	possibile alternativa
+{art_def}	articolo determinativo oggetto
+{art_indef}	articolo indeterminativo oggetto
+{art_def_a}	articolo determinativo oggetto alternativo
+{art_indef_a}	articolo indeterminativo oggetto alternativo

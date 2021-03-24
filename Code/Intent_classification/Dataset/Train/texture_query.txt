@@ -1,0 +1,150 @@
+che trama ha l’oggetto
+che tessitura ha l’oggetto inquadrato
+che materiale c’è nella figura
+che texture ha questa cosa
+di quale materiale è fatta questa cosa
+mi dici che materiale è
+mi dici che tessitura è
+mi dici che trama è
+mi dici che texture è
+dimmi che materiale è
+dimmi che tessitura è
+dimmi che texture è
+dimmi che trama è
+dimmi che tessitura ha questo oggetto
+quale materiale ha questo oggetto
+quale tessitura ha questo oggetto
+quale texture ha questo oggetto
+quale trama ha questo oggetto
+mi aiuti a capire che texture ha questo oggetto
+mi aiuti a capire che trama ha questo oggetto
+mi aiuti a capire che tessitura ha questo oggetto
+mi aiuti a capire che materiale ha questo oggetto
+voglio capire che trama ha questo oggetto
+voglio capire che texture ha questo oggetto
+voglio capire che tessitura ha questo oggetto
+voglio capire che materiale ha questo oggetto
+voglio sapere che texture ha questo oggetto
+voglio sapere che tessitura ha questo oggetto
+voglio sapere che materiale ha questo oggetto
+voglio sapere che trama ha questo oggetto
+che materiale stai vedendo
+che texture stai vedendo
+che tessitura stai vedendo
+non riconosco la tessitura dell'oggetto
+che trama stai vedendo
+come risulta al tatto
+che sensazione dà al tatto
+toccando questo oggetto come risulta
+toccando questo oggetto che sensazione dà
+toccando questo oggetto come sembra
+toccando questo oggetto che tessitura si sente
+mi sai dire che tipo di trama ha l'oggetto
+abaca
+acetato
+acrilico
+arazzo
+arcolaio
+canapa
+canovaccio
+cashmere
+ciniglia
+cotone
+damascato
+damasco
+denaro
+denim
+ecopelle
+écru
+faille o faglia
+felpa
+feltro
+fettuccia
+fibra tessile
+fibre naturali
+filaticcio
+filato
+finta pelle
+fresco lana
+garza
+gomitolo
+iuta
+lana
+lino
+matassa
+merletto
+messa in carta
+microfibra
+mussola
+nastro
+navetta
+nido d'ape
+nylon
+nodo
+panno
+pelliccia
+peluche
+pettine
+pezza
+pile
+piqué
+pizzo
+pois
+rafia
+rasatello
+raso
+rayon
+ricamo
+ritorto per trama
+ritorto singolo
+rocca
+rocchetto
+sartoria
+seta
+smerigliatura
+spina di pesce
+spoletta volante
+spugna
+stamigna
+stampa tessile
+stiratura
+tappeto
+tecnofibre
+tela
+telaio
+tessitura
+tessuti antipiega
+tessuto
+tombolo
+trama
+triacetato
+trattura
+tulle
+velcro
+velluto
+viscosa
+liscio
+ruvido
+spugnoso
+pungente
+metallico
+che superficie stai vedendo
+che tipo di superficie ha l'oggetto
+qual è la superficie dell'oggetto
+che tipo di superficie ha questa cosa
+qual è la superficie di questa cosa
+che superficie ha
+quale superficie ha
+mi sai dire che tipo di tessitura ha l'oggetto
+non riconosco la trama dell'oggetto
+che tipo di texture riconosci
+questa texture come si chiama
+com'è la superficie di ciò che vedi
+come si chiama questa texture
+che cosa mi sai dire della superficie dell'oggetto
+questo oggetto sembra ruvido
+questa cosa sembra liscia
+ciò che vedi come ti sembra
+che tessitura pensi possa avere l'oggetto
+come classificheresti la tessitura di ciò che vedi
+che tipo di superficie riconosci

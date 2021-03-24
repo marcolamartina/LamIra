@@ -1,0 +1,3 @@
+Questo è {label}
+Sono sicuro sia {label}
+Sto vedendo un oggetto di colore {label}

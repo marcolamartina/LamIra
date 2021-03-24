@@ -1,0 +1,3 @@
+Forse è {label}
+Ciò che hai inquadrato dovrebbe essere {label}
+Credo che stia vedendo qualcosa di {label}

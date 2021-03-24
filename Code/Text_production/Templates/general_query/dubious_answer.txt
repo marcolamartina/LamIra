@@ -1,0 +1,3 @@
+L'oggetto potrebbe essere {art_indef}{label} o {art_indef_a}{label_a}
+Ciò che hai inquadrato dovrebbe essere {art_indef}{label} o anche {art_indef_a}{label_a}
+Sono indeciso tra {art_indef}{label} e {art_indef_a}{label_a}

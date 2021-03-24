@@ -1,0 +1,3 @@
+L'oggetto è {art_indef}{label}
+Ciò che hai inquadrato è {art_indef}{label}
+Sto vedendo {art_indef}{label}

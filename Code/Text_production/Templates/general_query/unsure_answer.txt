@@ -1,0 +1,3 @@
+L'oggetto è forse {art_indef}{label}
+Ciò che hai inquadrato dovrebbe essere {art_indef}{label}
+Credo che stia vedendo {art_indef}{label}

@@ -1,0 +1,3 @@
+Potrebbe essere {art_indef}{label} o {art_indef_a}{label_a}
+Dovrebbe essere {art_indef}{label} o anche {art_indef_a}{label_a}
+Sono indeciso tra {label} e {label_a}
