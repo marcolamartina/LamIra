@@ -49,8 +49,8 @@ class Controller:
                 return
             self.play_video("thinking")    
             best_intent=best_intent[0]    
-            image=self.kinect.get_image_example()
-            #image=self.kinect.get_image()
+            #image=self.kinect.get_image_example()
+            image=self.kinect.get_image()
             predictions=self.grounding.classify(image,best_intent)
             text=self.text_production.to_text(best_intent,predictions)
             self.say_text(text)
