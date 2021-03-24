@@ -36,7 +36,7 @@ class Kinect:
     def get_image(self):
         img = self.get_color_image()
         depth = self.get_depth_image()
-        freenect.sync_stop()
+        #freenect.sync_stop()
         if self.verbose:
             self.show_image(img,depth)
         return img,depth    
