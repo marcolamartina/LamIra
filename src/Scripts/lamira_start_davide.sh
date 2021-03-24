@@ -1,2 +1,2 @@
-cd /home/davide/Tesi/Code/ ;
+cd /home/davide/LamIra/src/ ;
 python3 Main.py
