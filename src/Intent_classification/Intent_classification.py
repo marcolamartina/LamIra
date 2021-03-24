@@ -71,7 +71,6 @@ class Intent_classification:
         path = os.path.join(data_dir_intent_classification,"Weights","topic_saved_weights.pt")
         self.verbose=verbose
         self.device = torch.device(device_type)
-        print(device_type)
         checkpoint = torch.load(path,map_location=self.device)
         self.predictor = checkpoint.get("model")
         self.tokenizer = BertTokenizer.from_pretrained(berts[language])
