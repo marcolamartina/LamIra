@@ -86,7 +86,7 @@ class Speech_to_text:
             return self.ERROR,""
         
         if self.verbose:
-            print("Hai detto: {}".format(guess["transcription"]))
+            print("Hai detto: {}".format(guess["transcription"].lower()))
         text=guess["transcription"].lower()
         flag=self.SUCCESS
         return flag,text
