@@ -23,3 +23,8 @@ class Grounding:
             print("Shape: {}\nShape features: {}\n".format(features['shape'][0],features['shape'][1])) 
             print("Texture: {}\nTexture features: {}\n".format(features['texture'][0],features['texture'][1]))         
         return features[intent[:-6]][0]
+
+
+    def learn(self, scan, intent, label):
+        image,depth=scan
+        return    

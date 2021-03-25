@@ -63,10 +63,6 @@ class Speech_to_text:
         self.ERROR=0
         self.SUCCESS=1
         self.UNDEFINED=2
-        self.QUIT=3
-
-        #stop condition
-        self.stop_condition="esci"
         
         # create recognizer and mic instances
         self.recognizer = sr.Recognizer()
@@ -93,14 +89,12 @@ class Speech_to_text:
             print("Hai detto: {}".format(guess["transcription"]))
         text=guess["transcription"].lower()
         flag=self.SUCCESS
-        if text==self.stop_condition:
-            flag=self.QUIT
         return flag,text
 
 def main():
     sr = Speech_to_text()
     text=""
 
-    while text!=sr.stop_condition:
+    while text!="esci":
         flag,text=sr.start()
         print(text)

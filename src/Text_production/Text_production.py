@@ -24,12 +24,16 @@ class Text_production:
         self.verbose=verbose
         self.local=local        
 
-    def set_attributes(self,intent_label,predictions):
+    def set_attributes_predictions(self,intent_label,predictions):
         self.intent_label=intent_label
         self.predictions=Predictions(predictions)
+
+    def set_attributes_subject(self,intent_label,subject):
+        self.intent_label=intent_label
+        self.subject=subject    
         
-    def to_text(self,intent_label,predictions):
-        self.set_attributes(intent_label,predictions)
+    def to_text_predictions(self,intent_label,predictions):
+        self.set_attributes_predictions(intent_label,predictions)
         path = os.path.join(data_dir_text_production,"Templates",self.intent_label,"{}.txt".format(self.predictions.prediction_type))
         with open(path,"r") as f:
             outputs=[]
@@ -47,6 +51,19 @@ class Text_production:
         if self.verbose:
             print("Best predictions: {}".format([(p.label.label,round(p.confidence,4)) for p in self.predictions.best_predictions]))
         return output
+
+    def to_text_subject(self,intent_label,subject):
+        self.set_attributes_subject(intent_label,subject)
+        if "color" in intent_label:
+            l="il colore"
+        elif "shape" in intent_label:
+            l="la forma"
+        elif "texture" in intent_label:
+            l="la tessitura"
+        outputs=["Ho appena imparato","Ho imparato","Ho appreso"]
+        output=random.choice(outputs) 
+        output="{} {} {}".format(output,l,subject)
+        return output             
 
     def __set_labels(self):
         path = os.path.join(data_dir_text_production,"..","Intent_Classification","Dataset","Train")

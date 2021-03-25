@@ -3,19 +3,22 @@ from Grounding.Grounding import Grounding
 from Intent_classification.Intent_classification import BERT_Arch,Intent_classification
 from Text_production.Text_production import Text_production
 from Text_to_speech.Text_to_speech import Text_to_speech
+from Subject_extractor.Subject_extractor import Subject_extractor
 from Kinect.Kinect import Kinect
 import os
 import random
 
 class Controller:
-    def __init__(self,verbose=False,language="it-IT",device_type="cpu",video_id=None, lock=None, videos=None, default=None, name="LamIra"):
+    def __init__(self,verbose=False,language="it-IT",device_type="cpu",video_id=None, lock=None, videos=None, default=None, name="LamIra", intent_threshold=70):
         self.name=name
+        self.intent_threshold=intent_threshold 
         self.speech_to_text=Speech_to_text(verbose,language)
         self.intent_classification=Intent_classification(verbose,device_type,language)
         self.grounding=Grounding(verbose)
         self.text_production=Text_production(verbose)
         self.text_to_speech=Text_to_speech(verbose,language)
         self.kinect=Kinect(verbose)
+        self.subject_extractor=Subject_extractor(verbose)
 
         # for video player
         self.video_id=video_id
@@ -25,9 +28,8 @@ class Controller:
 
         # welcome message
         self.say("welcome")
-        
 
-    def run(self):
+    def query_mode(self):
         while True:
             flag=self.speech_to_text.ERROR
             self.say("query")
@@ -36,24 +38,66 @@ class Controller:
                 flag,query=self.speech_to_text.start()
                 if flag==self.speech_to_text.ERROR:
                     self.say("error")
-                    return
-                elif flag==self.speech_to_text.QUIT:
-                    self.say("quit")
-                    return  
+                    return 
                 elif flag==self.speech_to_text.UNDEFINED:
                     self.say("undefined")
             intents,best_intent=self.intent_classification.predict(query)
             if not self.check_intent(best_intent):
                 self.say("cannot_answer")
-                self.run()
+                self.query_mode()
                 return
-            self.play_video("thinking")    
             best_intent=best_intent[0]    
+            if best_intent=="exit":
+                self.say("quit")
+                return
+            if best_intent=="training_mode":
+                self.say("training_mode")
+                self.intent_classification.set_class_type("training")
+                self.training_mode()
+                return      
+            self.play_video("thinking")    
             #image=self.kinect.get_image_example()
             image=self.kinect.get_image()
             predictions=self.grounding.classify(image,best_intent)
-            text=self.text_production.to_text(best_intent,predictions)
-            self.say_text(text)
+            text=self.text_production.to_text_predictions(best_intent,predictions)
+            self.say_text(text)    
+
+    def training_mode(self):
+        while True:
+            flag=self.speech_to_text.ERROR
+            self.say("training_request")
+            self.play_video("listen")
+            while flag!=self.speech_to_text.SUCCESS:
+                flag,request=self.speech_to_text.start()
+                if flag==self.speech_to_text.ERROR:
+                    self.say("error")
+                    return 
+                elif flag==self.speech_to_text.UNDEFINED:
+                    self.say("undefined")
+            intents,best_intent=self.intent_classification.predict(request)
+            if not self.check_intent(best_intent):
+                self.say("cannot_answer")
+                self.query_mode()
+                return
+            best_intent=best_intent[0]    
+            if best_intent=="exit":
+                self.say("quit")
+                return
+            if best_intent=="query_mode":
+                self.say("query_mode")
+                self.intent_classification.set_class_type("query")
+                self.query_mode()
+                return      
+            self.play_video("thinking")    
+            #image=self.kinect.get_image_example()
+            image=self.kinect.get_image()
+            label=self.subject_extractor.extract_subject(request)
+            self.grounding.learn(image,best_intent,label)
+            text=self.text_production.to_text_subject(best_intent,label)
+            self.say_text(text)  
+
+    def run(self):
+        self.query_mode()
 
     def play_video(self, video_name):
         with self.lock:
@@ -87,7 +131,7 @@ class Controller:
             self.video_id.value=self.default   
 
     def check_intent(self,best_intent):
-        return best_intent[1]>70      
+        return best_intent[1]>self.intent_threshold      
 
     def __message(self, message_type):
         if message_type==None:

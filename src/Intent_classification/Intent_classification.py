@@ -68,14 +68,24 @@ class BERT_Arch(nn.Module):
         return x
 
 class Intent_classification:
-    def __init__(self,verbose=False,device_type="cpu",language="it-IT", class_type="grounding"): #grounding/learning
+    def __init__(self,verbose=False,device_type="cpu",language="it-IT", class_type="query"): #query/training
         self.verbose=verbose
         self.device = torch.device(device_type)       
         self.tokenizer = BertTokenizer.from_pretrained(berts[language])
         self.set_class_type(class_type)
         self.class_type=class_type
 
-    def set_class_type(self, class_type):
+    
+    def set_class_type(self, class_type="query"):
+        """Sets the type of intent classification, choosing between query or training 
+
+        :class_type:   can be 'query' or 'training'
+
+        """
+        if class_type=="query":
+            class_type="grounding"
+        elif class_type=="training":
+            class_type="learning"   
         path = os.path.join(data_dir_intent_classification,"Weights",class_type+"_saved_weights.pt")
         checkpoint = torch.load(path,map_location=self.device)
         self.predictor = checkpoint.get("model")
