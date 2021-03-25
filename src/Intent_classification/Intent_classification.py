@@ -81,11 +81,7 @@ class Intent_classification:
 
         :class_type:   can be 'query' or 'training'
 
-        """
-        if class_type=="query":
-            class_type="grounding"
-        elif class_type=="training":
-            class_type="learning"   
+        """   
         path = os.path.join(data_dir_intent_classification,"Weights",class_type+"_saved_weights.pt")
         checkpoint = torch.load(path,map_location=self.device)
         self.predictor = checkpoint.get("model")
