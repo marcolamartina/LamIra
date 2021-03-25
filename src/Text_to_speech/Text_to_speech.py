@@ -82,7 +82,7 @@ class Text_to_speech:
 def save_audio():
     text_to_speech=Text_to_speech(verbose=False,language="it-IT")
     nome="LamIra"
-    paths=[r'/Users/marco/Google Drive/Tesi/Media/Audio/',r'/Users/marco/GitHub/LamIra/Media/Audio/']
+    path=r'/Users/marco/GitHub/LamIra/Media/Audio/'
     welcome_message_list=["Ciao, "+nome+" ti dà il benvenuto.", "Benvenuto in "+nome+".", nome+" ti dà il benvenuto", "Ciao, sono "+nome+" e sono qui per aiutarti", "Sono "+nome+" e voglio darti il benvenuto."]
     quit_message_list=["Arrivederci da "+nome, "È stato un piacere", nome+" ti ringrazia", "Grazie per aver scelto "+nome+", arrivederci.", nome+" ti augura una buona giornata!", "A presto", "Un saluto da "+nome]
     error_message_list=["C'è stato un errore imprevisto. Devo spegnermi.", "Si è verificato un errore. Per favore riprova", "Ho riscontrato un errore.", "Per favore riprova", "Scusami, ho una perdita di bit, riprova", "Ho subito un attacco hacker e devo riavviarmi", "Ci stanno tracciando, staccah staccah tutte cose!"]
@@ -92,11 +92,26 @@ def save_audio():
     training_mode_list=["Hai attivato la modalità addestramento", "Sei entrato nella modalità addestramento", "Benvenuto nella modalità addestramento" ]
     query_mode_list=[s.replace("addestramento","query") for s in training_mode_list]
     training_request_list=["Cosa vuoi insegnarmi?","Cosa posso imparare?","Cosa vuoi farmi vedere?","Cosa posso apprendere?"]
-    
-    dict_message={"Welcome":welcome_message_list,"Quit":quit_message_list,"Error":error_message_list,"Undefined":undefined_message_list, "Query":query_message_list, "Cannot_answer":cannot_answer_message_list, "Training_mode":training_mode_list, "Query_mode":query_mode_list, "Training_request":training_request_list}
+    color_label_query_list=["Come si chiama questo colore?","Che nome ha questo colore?","Che colore è questo?"]
+    general_label_query_list=[s.replace("colore","oggetto") for s in color_label_query_list]
+    texture_label_query_list=[s.replace("colore","tessitura").replace("questo","questa") for s in color_label_query_list]
+    shape_label_query_list=[s.replace("tessitura","forma") for s in texture_label_query_list]
+
+    dict_message={  "Welcome":welcome_message_list,
+                    "Quit":quit_message_list,
+                    "Error":error_message_list,
+                    "Undefined":undefined_message_list, 
+                    "Query":query_message_list, 
+                    "Cannot_answer":cannot_answer_message_list, 
+                    "Training_mode":training_mode_list, 
+                    "Query_mode":query_mode_list, 
+                    "Training_request":training_request_list, 
+                    "Color_label_query":color_label_query_list,
+                    "Texture_label_query":texture_label_query_list,
+                    "Shape_label_query":shape_label_query_list,
+                    "General_label_query":general_label_query_list}
     for folder,message_list in dict_message.items():
         for i,message in enumerate(message_list):
-            for path in paths:
-                text_to_speech.save(message, path+folder+"/"+folder.lower()+"_message_"+str(i))
+            text_to_speech.save(message, path+folder+"/"+folder.lower()+"_message_"+str(i))
 
 

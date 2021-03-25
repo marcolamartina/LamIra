@@ -31,16 +31,7 @@ class Controller:
 
     def query_mode(self):
         while True:
-            flag=self.speech_to_text.ERROR
-            self.say("query")
-            self.play_video("listen")
-            while flag!=self.speech_to_text.SUCCESS:
-                flag,query=self.speech_to_text.start()
-                if flag==self.speech_to_text.ERROR:
-                    self.say("error")
-                    return 
-                elif flag==self.speech_to_text.UNDEFINED:
-                    self.say("undefined")
+            query=self.get_input("query")
             intents,best_intent=self.intent_classification.predict(query)
             if not self.check_intent(best_intent):
                 self.say("cannot_answer")
@@ -64,16 +55,7 @@ class Controller:
 
     def training_mode(self):
         while True:
-            flag=self.speech_to_text.ERROR
-            self.say("training_request")
-            self.play_video("listen")
-            while flag!=self.speech_to_text.SUCCESS:
-                flag,request=self.speech_to_text.start()
-                if flag==self.speech_to_text.ERROR:
-                    self.say("error")
-                    return 
-                elif flag==self.speech_to_text.UNDEFINED:
-                    self.say("undefined")
+            request=self.get_input("training_request")
             intents,best_intent=self.intent_classification.predict(request)
             if not self.check_intent(best_intent):
                 self.say("cannot_answer")
@@ -83,7 +65,7 @@ class Controller:
             if best_intent=="exit":
                 self.say("quit")
                 return
-            if best_intent=="query_mode":
+            if best_intent=="training_mode": # change to query mode when intent training weight are trained
                 self.say("query_mode")
                 self.intent_classification.set_class_type("query")
                 self.query_mode()
@@ -91,10 +73,27 @@ class Controller:
             self.play_video("thinking")    
             #image=self.kinect.get_image_example()
             image=self.kinect.get_image()
-            label=self.subject_extractor.extract_subject(request)
+            label=self.get_label_input(best_intent)
             self.grounding.learn(image,best_intent,label)
             text=self.text_production.to_text_subject(best_intent,label)
-            self.say_text(text)  
+            self.say_text(text)
+
+    def get_input(self,request_type):
+        flag=self.speech_to_text.ERROR
+        self.say(request_type)
+        self.play_video("listen")
+        while flag!=self.speech_to_text.SUCCESS:
+            flag,request=self.speech_to_text.start()
+            if flag==self.speech_to_text.ERROR:
+                self.say("error")
+                return 
+            elif flag==self.speech_to_text.UNDEFINED:
+                self.say("undefined")      
+        return request 
+
+    def get_label_input(self,intent):
+        request_type=intent.split("_")[0]+"_label_query"
+        return self.get_input(request_type)                     
 
     def run(self):
         self.query_mode()
