@@ -7,7 +7,14 @@ from contextlib import contextmanager
 import pyaudio
 from datetime import datetime
 import platform
+import os
 
+try:
+    from google.colab import drive
+    drive.mount("/content/drive/")
+    data_dir_text_to_speech = "/content/drive/My Drive/Tesi/Code/Text_to_speech/"
+except:
+    data_dir_text_to_speech=os.path.dirname(__file__)
 
 mac=platform.system()=="Darwin"
 if not mac:
@@ -89,7 +96,7 @@ class Text_to_speech:
 def save_audio():
     text_to_speech=Text_to_speech(verbose=False,language="it-IT")
     nome="LamIra"
-    path=r'/Users/marco/GitHub/LamIra/Media/Audio/'
+    path=os.path.join(data_dir_text_to_speech,"..","..","Media","Audio")
     welcome_message_list=["Ciao, "+nome+" ti dà il benvenuto.", "Benvenuto in "+nome+".", nome+" ti dà il benvenuto", "Ciao, sono "+nome+" e sono qui per aiutarti", "Sono "+nome+" e voglio darti il benvenuto."]
     quit_message_list=["Arrivederci da "+nome, "È stato un piacere", nome+" ti ringrazia", "Grazie per aver scelto "+nome+", arrivederci.", nome+" ti augura una buona giornata!", "A presto", "Un saluto da "+nome]
     error_message_list=["C'è stato un errore imprevisto. Devo spegnermi.", "Si è verificato un errore. Per favore riprova", "Ho riscontrato un errore.", "Per favore riprova", "Scusami, ho una perdita di bit, riprova", "Ho subito un attacco hacker e devo riavviarmi", "Ci stanno tracciando, staccah staccah tutte cose!"]
@@ -124,3 +131,10 @@ def save_audio():
             with open(p+".txt","w") as f:
                 f.write(message)
 
+def main():
+    t=Text_to_speech()
+    t.speak("ciao")
+    #save_audio()
+
+if __name__=="__main__":
+    main()    

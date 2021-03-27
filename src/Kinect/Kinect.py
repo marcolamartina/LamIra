@@ -45,10 +45,7 @@ try:
     drive.mount("/content/drive/")
     data_dir_images = "/content/drive/My Drive/Tesi/Media/Images/"
 except:
-    if __package__:
-        data_dir_images =os.path.join("./",__package__,"..","..","Media","Images")
-    else:
-        data_dir_images =os.path.join(os.path.dirname(__file__),"..","..","Media","Images")  
+    data_dir_images =os.path.join(os.path.dirname(__file__),"..","..","Media","Images")  
 
 
 class Kinect:

@@ -24,9 +24,8 @@ try:
     drive.mount("/content/drive/")
     data_dir_intent_classification = "/content/drive/My Drive/Tesi/Code/Text_production/"
 except:
-    data_dir_intent_classification = "./"
-    if __package__:
-        data_dir_intent_classification +=__package__
+    data_dir_intent_classification=os.path.dirname(__file__)
+
 
 class BERT_Arch(nn.Module):
     def __init__(self, bert,label_map):
@@ -74,6 +73,7 @@ class Intent_classification:
         self.tokenizer = BertTokenizer.from_pretrained(berts[language])
         self.set_class_type(class_type)
         self.class_type=class_type
+        
 
     
     def set_class_type(self, class_type="query"):
@@ -128,8 +128,7 @@ def main():
 
   for item in list_input:
       confidences,pred_val = pred.predict(item)
-      prob = round([i for i in confidences if i[0]==pred_val][0][1],4)
-      print("'" + item + "' = " + pred_val + ": " + str(prob))
+      print("'{}' = {}: {}".format(item,pred_val[0],round(pred_val[1],4)))
       print([(i[0],round(i[1],4)) for i in confidences])
       print()
 

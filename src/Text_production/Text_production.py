@@ -13,9 +13,7 @@ try:
     drive.mount("/content/drive/")
     data_dir_text_production = "/content/drive/My Drive/Tesi/Code/Text_production/"
 except:
-    data_dir_text_production = "./"
-    if __package__:
-        data_dir_text_production +=__package__
+    data_dir_text_production = os.path.dirname(__file__)
     
 
 class Text_production:
