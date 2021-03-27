@@ -3,7 +3,6 @@ from Grounding.Grounding import Grounding
 from Intent_classification.Intent_classification import BERT_Arch,Intent_classification
 from Text_production.Text_production import Text_production
 from Text_to_speech.Text_to_speech import Text_to_speech
-from Subject_extractor.Subject_extractor import Subject_extractor
 from Kinect.Kinect import Kinect
 import os
 import random
@@ -24,7 +23,6 @@ class Controller:
         self.text_production=Text_production(verbose)
         self.text_to_speech=Text_to_speech(verbose,language,play_audio)
         self.kinect=Kinect(verbose, image, depth, i_shape, d_shape)
-        self.subject_extractor=Subject_extractor(verbose)
         if microphone:
             self.speech_to_text=Speech_to_text(verbose,language)
 
@@ -97,7 +95,7 @@ class Controller:
         self.say(request_type)
         self.play_video("listen")
         if self.microphone and (self.verbose or not self.show_assistent):
-            print("Puoi parlare")
+            print("Sto ascoltando...")
         elif not self.microphone:
             request = input("Scrivi la tua richiesta: ")
             return request
