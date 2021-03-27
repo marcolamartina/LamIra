@@ -97,15 +97,14 @@ def main():
     s = Speech_to_text(verbose=True)
     text=""
     flag=s.ERROR    
-    while text!="esci":
-        while flag!=s.SUCCESS:
-            print("Parla")
-            flag,text=s.start()
-            if flag==s.ERROR:
-                print("error")
-                return 
-            elif flag==s.UNDEFINED:
-                print("undefined")
+    while flag!=s.SUCCESS or text!="esci":
+        print("Sto ascoltando...")
+        flag,text=s.start()
+        if flag==s.ERROR:
+            print("error")
+            return 
+        elif flag==s.UNDEFINED:
+            print("undefined")
 
 if __name__=="__main__":
     main()        
