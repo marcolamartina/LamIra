@@ -7,18 +7,26 @@ from Subject_extractor.Subject_extractor import Subject_extractor
 from Kinect.Kinect import Kinect
 import os
 import random
+import sys
+
 
 class Controller:
-    def __init__(self,verbose=False,language="it-IT",device_type="cpu",video_id=None, lock=None, videos=None, default=None, name="LamIra", intent_threshold=70):
+    def __init__(self, newstdin=sys.stdin, close=None, verbose=False, show_assistent=True, play_audio=True, microphone=False, language="it-IT",device_type="cpu", video_id=None, lock=None, videos=None, default=None, name="LamIra", image=None, depth=None, i_shape=None, d_shape=None):
+        sys.stdin = os.fdopen(newstdin)
         self.name=name
-        self.intent_threshold=intent_threshold 
-        self.speech_to_text=Speech_to_text(verbose,language)
+        self.close=close
+        self.show_assistent=show_assistent
+        self.verbose=verbose
+        self.microphone=microphone
+        self.intent_threshold=70
         self.intent_classification=Intent_classification(verbose,device_type,language)
         self.grounding=Grounding(verbose)
         self.text_production=Text_production(verbose)
-        self.text_to_speech=Text_to_speech(verbose,language)
-        self.kinect=Kinect(verbose)
+        self.text_to_speech=Text_to_speech(verbose,language,play_audio)
+        self.kinect=Kinect(verbose, image, depth, i_shape, d_shape)
         self.subject_extractor=Subject_extractor(verbose)
+        if microphone:
+            self.speech_to_text=Speech_to_text(verbose,language)
 
         # for video player
         self.video_id=video_id
@@ -40,13 +48,14 @@ class Controller:
             best_intent=best_intent[0]    
             if best_intent=="exit":
                 self.say("quit")
+                self.close.value=1
                 return
             if best_intent=="training_mode":
                 self.say("training_mode")
                 self.intent_classification.set_class_type("training")
                 self.training_mode()
                 return      
-            self.play_video("thinking")    
+            self.thinking()     
             #image=self.kinect.get_image_example()
             image=self.kinect.get_image()
             predictions=self.grounding.classify(image,best_intent)
@@ -64,13 +73,14 @@ class Controller:
             best_intent=best_intent[0]    
             if best_intent=="exit":
                 self.say("quit")
+                self.close.value=1
                 return
             if best_intent=="training_mode": # change to query mode when intent training weight are trained
                 self.say("query_mode")
                 self.intent_classification.set_class_type("query")
                 self.query_mode()
                 return      
-            self.play_video("thinking")    
+            self.thinking()   
             #image=self.kinect.get_image_example()
             image=self.kinect.get_image()
             label=self.get_label_input(best_intent)
@@ -78,10 +88,20 @@ class Controller:
             text=self.text_production.to_text_subject(best_intent,label)
             self.say_text(text)
 
+    def thinking(self):
+        self.play_video("thinking")
+        if self.verbose:
+            print("Sto pensando...")  
+
     def get_input(self,request_type):
-        flag=self.speech_to_text.ERROR
         self.say(request_type)
         self.play_video("listen")
+        if self.microphone and (self.verbose or not self.show_assistent):
+            print("Puoi parlare")
+        elif not self.microphone:
+            request = input("Scrivi la tua richiesta: ")
+            return request
+        flag=self.speech_to_text.ERROR    
         while flag!=self.speech_to_text.SUCCESS:
             flag,request=self.speech_to_text.start()
             if flag==self.speech_to_text.ERROR:
@@ -99,35 +119,39 @@ class Controller:
         self.query_mode()
 
     def play_video(self, video_name):
-        with self.lock:
-            target=video_name+".mp4"
-            if target not in self.videos:
-                target=self.default 
-            self.video_id.value=self.videos.index(target)
+        if self.show_assistent:
+            with self.lock:
+                target=video_name+".mp4"
+                if target not in self.videos:
+                    target=self.default 
+                self.video_id.value=self.videos.index(target)
 
     def say_text(self, text):
-        target="speak.mp4" 
-        with self.lock:        
-            self.video_id.value=self.videos.index(target)      
-
+        if self.show_assistent:
+            target="speak.mp4" 
+            with self.lock:        
+                self.video_id.value=self.videos.index(target)      
         self.text_to_speech.speak(text)
-        with self.lock:
-            self.video_id.value=self.default              
+        if self.show_assistent:
+            with self.lock:
+                self.video_id.value=self.default              
 
 
     def say(self, message):
         target=message+".mp4"
         if target not in self.videos:
-            target="speak.mp4" 
-        with self.lock:        
-            self.video_id.value=self.videos.index(target)      
-
+            self.say_text(message)
+            return
+        if self.show_assistent:    
+            with self.lock:        
+                self.video_id.value=self.videos.index(target)      
         self.text_to_speech.speak_from_file(self.__message(message))
-        with self.lock:
-            if message=="quit":
-                self.video_id.value=-1
-                return   
-            self.video_id.value=self.default   
+        if self.show_assistent:
+            with self.lock:
+                if message=="quit":
+                    self.video_id.value=-1
+                    return   
+                self.video_id.value=self.default   
 
     def check_intent(self,best_intent):
         return best_intent[1]>self.intent_threshold      
@@ -143,6 +167,5 @@ class Controller:
         except FileNotFoundError:
             print("{}: No such file or directory".format(path))
             os._exit(1)
-
 
 

@@ -29,36 +29,38 @@ def noalsaerr():
     asound.snd_lib_error_set_handler(None)
 
 class Text_to_speech:
-    def __init__(self,verbose=False,language="it-IT"):
+    def __init__(self,verbose=False,language="it-IT",play_audio=True):
         self.language=language
         self.verbose=verbose
+        self.play_audio=play_audio
 
-    def speak(self,text):    
-        with noalsaerr() as n:
-            # Define a BytesIO object
-            mp3_fp = BytesIO()
+    def speak(self,text):
+        #Transcript
+        if self.verbose or not self.play_audio:
+            print(text)
 
-            # Passing the text and language to the engine,  
-            # here we have marked slow=False. Which tells  
-            # the module that the converted audio should  
-            # have a high speed 
-            tts = gTTS(text=text, lang=self.language[:2],slow=False)
+        if self.play_audio:    
+            with noalsaerr() as n:
+                # Define a BytesIO object
+                mp3_fp = BytesIO()
 
-            # Write audio in BytesIO object
-            tts.write_to_fp(mp3_fp)
+                # Passing the text and language to the engine,  
+                # here we have marked slow=False. Which tells  
+                # the module that the converted audio should  
+                # have a high speed 
+                tts = gTTS(text=text, lang=self.language[:2],slow=False)
 
-            # Setting the seek
-            mp3_fp.seek(0)
+                # Write audio in BytesIO object
+                tts.write_to_fp(mp3_fp)
 
-            # Decode the audio format
-            song = AudioSegment.from_file(mp3_fp, format="mp3")
+                # Setting the seek
+                mp3_fp.seek(0)
 
-            #Transcript
-            if self.verbose:
-                print(text)
+                # Decode the audio format
+                song = AudioSegment.from_file(mp3_fp, format="mp3")
 
-            # Play audio
-            play(song)
+                # Play audio
+                play(song)
 
     def save(self,text, filename):
         with noalsaerr() as n:
@@ -71,12 +73,17 @@ class Text_to_speech:
             tts.save(filename+".mp3")
         
     def speak_from_file(self, filename):
-        with noalsaerr() as n:
-            # Decode the audio format
-            song = AudioSegment.from_file("../Media/Audio/"+filename, format="mp3")
+        #Transcript
+        if self.verbose or not self.play_audio:
+            with open("../Media/Audio/"+filename[:-3]+"txt","r") as f:
+                print(f.readline())
+        if self.play_audio:
+            with noalsaerr() as n:
+                # Decode the audio format
+                song = AudioSegment.from_file("../Media/Audio/"+filename, format="mp3")
 
-            # Play audio
-            play(song)
+                # Play audio
+                play(song)
 
 
 def save_audio():
@@ -112,6 +119,8 @@ def save_audio():
                     "General_label_query":general_label_query_list}
     for folder,message_list in dict_message.items():
         for i,message in enumerate(message_list):
-            text_to_speech.save(message, path+folder+"/"+folder.lower()+"_message_"+str(i))
-
+            p=path+folder+"/"+folder.lower()+"_message_"+str(i)
+            text_to_speech.save(message, p)
+            with open(p+".txt","w") as f:
+                f.write(message)
 

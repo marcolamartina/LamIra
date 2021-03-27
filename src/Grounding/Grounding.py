@@ -3,6 +3,15 @@ from Grounding.Extractors.Shape_extractor import Shape_extractor
 from Grounding.Extractors.Texture_extractor import Texture_extractor
 import random
 
+def round_features(l):
+    if not l:
+        return None
+    approx=4
+    if type(l[0][0]) is list:
+        return [([round(e,approx) for e in a],round(b,approx)) for (a,b) in l]
+    else:  
+        return [(a,round(b,approx)) for (a,b) in l]  
+
 class Grounding:
     def __init__(self,verbose=False):
         self.verbose=verbose
@@ -19,12 +28,14 @@ class Grounding:
          
         if self.verbose:
             print("Intent: {}".format(intent))
-            print("Color: {}\nColor features: {}\n".format(features['color'][0],features['color'][1])) 
-            print("Shape: {}\nShape features: {}\n".format(features['shape'][0],features['shape'][1])) 
-            print("Texture: {}\nTexture features: {}\n".format(features['texture'][0],features['texture'][1]))         
+            print("Color: {}\nColor features: {}\n".format(round_features(features['color'][0]),round_features(features['color'][1]))) 
+            print("Shape: {}\nShape features: {}\n".format(round_features(features['shape'][0]),round_features(features['shape'][1]))) 
+            print("Texture: {}\nTexture features: {}\n".format(round_features(features['texture'][0]),round_features(features['texture'][1])))         
         return features[intent[:-6]][0]
 
 
     def learn(self, scan, intent, label):
         image,depth=scan
         return    
+
+
