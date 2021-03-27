@@ -198,7 +198,7 @@ def main():
 
   for prediction in predictions:
       tp=Text_production()
-      print(tp.to_text(*prediction))
+      print(tp.to_text_predictions(*prediction))
 
 if __name__ == "__main__":
     main()  

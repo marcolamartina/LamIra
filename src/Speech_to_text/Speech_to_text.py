@@ -66,7 +66,9 @@ class Speech_to_text:
         
         # create recognizer and mic instances
         self.recognizer = sr.Recognizer()
+        sr.SAMPLE_RATE = 48000
         self.microphone = sr.Microphone()
+        
 
     def start(self):
         for j in range(self.PROMPT_LIMIT):
@@ -92,9 +94,18 @@ class Speech_to_text:
         return flag,text
 
 def main():
-    sr = Speech_to_text()
+    s = Speech_to_text(verbose=True)
     text=""
-
+    flag=s.ERROR    
     while text!="esci":
-        flag,text=sr.start()
-        print(text)
+        while flag!=s.SUCCESS:
+            print("Parla")
+            flag,text=s.start()
+            if flag==s.ERROR:
+                print("error")
+                return 
+            elif flag==s.UNDEFINED:
+                print("undefined")
+
+if __name__=="__main__":
+    main()        

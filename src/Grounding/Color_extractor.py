@@ -1,6 +1,19 @@
 import cv2
 import math
-from Grounding.Clustering import kmeans, euclidean_distance
+import os
+if __package__:
+    from Grounding.Clustering import kmeans, euclidean_distance
+else:
+    from Clustering import kmeans, euclidean_distance
+
+try:
+    from google.colab import drive
+    drive.mount("/content/drive/")
+    data_dir_color_extractor = "/content/drive/My Drive/Tesi/Code/Grounding/"
+    data_dir_images = "/content/drive/My Drive/Tesi/Media/Images/"
+except:
+    data_dir_color_extractor = os.path.dirname(__file__)
+    data_dir_images =os.path.join(data_dir_color_extractor,"..","..","Media","Images")    
 
 class Color_extractor:
     def extract(self,image):
@@ -49,3 +62,26 @@ class Color_extractor:
         x,y = p
         angle = math.degrees(math.atan2(y,x))
         return (math.hypot(x,y), angle) 
+
+def main():
+    import cv2
+    import random
+    from Grounding import round_list
+    try:
+        images = os.listdir( data_dir_images )
+        images=[i for i in images if i.endswith(".jpg")]
+    except FileNotFoundError:
+        print("{}: No such file or directory".format(data_dir_images))
+        os._exit(1)
+    image=random.choice(images) 
+    print("Image: {}".format(image))   
+    path = os.path.join(data_dir_images,image)
+    img = cv2.imread(path)
+    e=Color_extractor()
+    color_label,centroids=e.extract(img)
+    print("Centroid list: {}".format(round_list(centroids)))
+    print("Color label first centroid: {}".format(round_list(color_label)))
+
+
+if __name__=="__main__":
+    main()    

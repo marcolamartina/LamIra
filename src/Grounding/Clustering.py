@@ -7,6 +7,7 @@ from sklearn import metrics
 from sklearn.datasets import make_blobs
 from sklearn.preprocessing import StandardScaler
 from collections import Counter
+import random
 
 def euclidean_distance(a,b):
     xa,ya,za=a
@@ -94,4 +95,13 @@ def kmeans(points, n_clusters=None, dimensions=True):
         centroids=[c[0] for c in centroids]
     return centroids
 
+def main():
+    centroids=[(1,1),(4,4),(9,9)]
+    noised=lambda x:(x[0]-0.1+random.random()*0.2,x[1]-0.1+random.random()*0.2)
+    points=[noised(random.choice(centroids)) for _ in range(1000)]
+    result=kmeans(points,len(centroids))
+    print(result)
 
+
+if __name__=="__main__":
+    main()
