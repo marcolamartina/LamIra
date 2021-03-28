@@ -4,7 +4,18 @@ import cv2
 import os
 import sys
 import random
+import time
 from contextlib import contextmanager
+
+OFF=0
+GREEN=1
+RED=2
+YELLOW=3
+BLINK_GREEN=4
+BLINK_RED_YELLOW=5
+CENTER=0
+UP=30
+DOWN=-30
 
 COLOR_VIDEO_RESOLUTION=(480,640,3)
 DEPTH_VIDEO_RESOLUTION=(480,640)
@@ -76,7 +87,6 @@ class Kinect:
         d = array_to_image(self.depth,self.d_shape)
         return i,d
 
-
     
 class Kinect_video_player:
     def __init__(self, close, i_arr, d_arr, i_shape, d_shape, show_video, show_depth):
@@ -88,18 +98,25 @@ class Kinect_video_player:
         self.show_depth=show_depth
         self.close=close
 
+        self.ctx, self.dev= self.__init_kinect__()        
+        self.set_led('GREEN')
+        self.set_tilt_degs(CENTER)
+        freenect.close_device(self.dev)
+        freenect.shutdown(self.ctx)
+
 
     def run(self):
         window_y=450
         if self.show_video:
             cv2.namedWindow('Video')
-            cv2.moveWindow('Video',0,window_y)
+            cv2.moveWindow('Video',0 ,window_y)
         if self.show_depth:
             cv2.namedWindow('Depth')
             cv2.moveWindow('Depth',COLOR_VIDEO_RESOLUTION[1],window_y)
         with stderr_redirected(to=os.devnull):
             while True:
-                if self.close.value==1:
+                if self.close.value==1: 
+                    freenect.sync_stop()
                     return
                 i = array_to_image(self.i_arr,self.i_shape)
                 d = array_to_image(self.d_arr,self.d_shape)
@@ -112,6 +129,7 @@ class Kinect_video_player:
                 if self.show_video:   
                     cv2.imshow('Video', image)
                 if (self.show_depth or self.show_video) and cv2.waitKey(10) == 27:   
+                    freenect.sync_stop()
                     break
                 d[...]=depth
                 i[...]=image
@@ -175,6 +193,41 @@ class Kinect_video_player:
             A numpy array with with 1 byte per pixel, 3 channels BGR
         """
         return video[:, :, ::-1]  # RGB -> BGR
+
+    def __init_kinect__(self):
+        ctx = freenect.init()
+        dev = freenect.open_device(ctx, freenect.num_devices(ctx) - 1)
+
+        if not dev:
+            freenect.error_open_device()
+            os._exit(1)
+        return ctx, dev
+
+    def __del__(self):
+        self.ctx, self.dev= self.__init_kinect__() 
+        self.set_led('RED')
+        self.set_tilt_degs(DOWN)
+        time.sleep(2)
+        self.set_led('OFF')
+        freenect.close_device(self.dev)
+        freenect.shutdown(self.ctx)
+
+    def set_led(self, color):
+        color=color.upper()
+        accept_color=["OFF", "GREEN", "RED", "YELLOW", "BLINK_GREEN", "BLINK_RED_YELLOW"]
+        if color not in accept_color:
+            print("Color must be in corret form. \ne.g. " + str(accept_color))
+        else:
+            freenect.set_led(self.dev, globals()[color])
+
+    def set_tilt_degs(self, degree):
+        if type(degree)==str:
+            degree = int(globals()[degree])
+
+        if abs(degree) > UP:
+            print("Degree angle must be beetween -30 and 30")
+        else:
+            freenect.set_tilt_degs(self.dev, degree)
                     
 def array_to_image(image,shape):
     i = np.frombuffer(image.get_obj(), dtype=np.uint8)
@@ -199,7 +252,9 @@ def main():
     image = Array('B', i_arr)
     depth = Array('B', d_arr)
 
-    kinect_video_player=Kinect_video_player(image, depth, i_shape, d_shape, show_video, show_depth)
+    close = Value('i',  0)
+
+    kinect_video_player=Kinect_video_player(close, image, depth, i_shape, d_shape, show_video, show_depth)
     kinect_video_player.run() 
 
 if __name__=="__main__":
