@@ -15,7 +15,7 @@ show_video=False
 show_depth=True
 show_assistent=True
 play_audio=True
-microphone=True
+microphone=False
 device_type="cpu"
 
 def logic_start(close, video_id, lock, videos, default, name, image, depth, i_shape, d_shape,newstdin):

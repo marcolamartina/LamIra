@@ -28,10 +28,7 @@ class Video_player:
                 if ret == True and current_id==self.video_id.value: # video not finished and no request for playing
 
                     cv2.imshow(self.name,frame)
-                    if cv2.waitKey(1) == 27:
-                        # When esc is pressed isclosed is 1
-                        isclosed=1
-                        break
+                    cv2.waitKey(1)
                 # elif ret == False and current_id==video_id.value: # video finished and no request for playing
                     #video_id.value=default
                     #break

@@ -113,7 +113,7 @@ class Kinect_video_player:
             cv2.moveWindow('Video',0 ,window_y)
         if self.show_depth:
             cv2.namedWindow('Depth')
-            cv2.moveWindow('Depth',COLOR_VIDEO_RESOLUTION[1],window_y)
+            cv2.moveWindow('Depth',COLOR_VIDEO_RESOLUTION[1],window_y) 
         with stderr_redirected(to=os.devnull):
             while True:
                 try:
@@ -130,15 +130,15 @@ class Kinect_video_player:
                         cv2.imshow('Depth', depth)
                     if self.show_video:   
                         cv2.imshow('Video', image)
-                    if (self.show_depth or self.show_video) and cv2.waitKey(10) == 27:   
-                        freenect.sync_stop()
-                        break
+                    if (self.show_depth or self.show_video):
+                        cv2.waitKey(1)
+                            
                     d[...]=depth
                     i[...]=image
                 except KeyboardInterrupt:
                     freenect.sync_stop()
-
-
+                    self.__del__() 
+                    os._exit(1)   
 
     def get_depth_image(self):
         f=freenect.sync_get_depth()
