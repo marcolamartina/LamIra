@@ -37,6 +37,9 @@ class Controller:
 
     def query_mode(self):
         while True:
+            if self.close.value==1:
+                self.say("quit")
+                return
             query=self.get_input("query")
             intents,best_intent=self.intent_classification.predict(query)
             if not self.check_intent(best_intent):
@@ -46,7 +49,6 @@ class Controller:
             best_intent=best_intent[0]    
             if best_intent=="exit":
                 self.say("quit")
-                self.close.value=1
                 return
             if best_intent=="training_mode":
                 self.say("training_mode")
@@ -62,16 +64,18 @@ class Controller:
 
     def training_mode(self):
         while True:
+            if self.close.value==1:
+                self.say("quit")
+                return
             request=self.get_input("training_request")
             intents,best_intent=self.intent_classification.predict(request)
             if not self.check_intent(best_intent):
                 self.say("cannot_answer")
-                self.query_mode()
+                self.training_mode()
                 return
             best_intent=best_intent[0]    
             if best_intent=="exit":
                 self.say("quit")
-                self.close.value=1
                 return
             if best_intent=="training_mode": # change to query mode when intent training weight are trained
                 self.say("query_mode")
@@ -81,18 +85,29 @@ class Controller:
             self.thinking()   
             #image=self.kinect.get_image_example()
             image=self.kinect.get_image()
-            label=self.get_label_input(best_intent)
+            label_confirmed=False
+            while not label_confirmed:
+                label=self.get_label_input(best_intent)
+                confirm_response=self.get_input("confirm_label","Vuoi confermare {}?".format(label))
+                label_confirmed=self.verify_confirm(confirm_response)
             self.grounding.learn(image,best_intent,label)
             text=self.text_production.to_text_subject(best_intent,label)
             self.say_text(text)
+
+    def verify_confirm(self,confirm_response):
+        negative=["no","negativo"]
+        for n in negative:
+            if n in confirm_response.lower().split(" "):
+                return False
+        return True        
 
     def thinking(self):
         self.play_video("thinking")
         if self.verbose:
             print("Sto pensando...")  
 
-    def get_input(self,request_type):
-        self.say(request_type)
+    def get_input(self,request_type,text=None):
+        self.say(request_type,text)
         self.play_video("listen")
         if self.microphone and (self.verbose or not self.show_assistent):
             print("Sto ascoltando...")
@@ -124,6 +139,9 @@ class Controller:
                     target=self.default 
                 self.video_id.value=self.videos.index(target)
 
+    def check_intent(self,best_intent):
+        return best_intent[1]>self.intent_threshold  
+
     def say_text(self, text):
         if self.show_assistent:
             target="speak.mp4" 
@@ -134,25 +152,24 @@ class Controller:
             with self.lock:
                 self.video_id.value=self.default              
 
-
-    def say(self, message):
-        target=message+".mp4"
-        if target not in self.videos:
-            self.say_text(message)
-            return
-        if self.show_assistent:    
+    def say(self, video, text=None):
+        if self.show_assistent:
+            target=video+".mp4"
+            if target not in self.videos:
+                target="speak.mp4"    
             with self.lock:        
-                self.video_id.value=self.videos.index(target)      
-        self.text_to_speech.speak_from_file(self.__message(message))
+                self.video_id.value=self.videos.index(target)
+        if text==None:
+            self.text_to_speech.speak_from_file(self.__message(video))
+        else:
+            self.text_to_speech.speak(text)
         if self.show_assistent:
             with self.lock:
-                if message=="quit":
+                if video=="quit":
                     self.video_id.value=-1
+                    self.close.value=1
                     return   
-                self.video_id.value=self.default   
-
-    def check_intent(self,best_intent):
-        return best_intent[1]>self.intent_threshold      
+                self.video_id.value=self.default               
 
     def __message(self, message_type):
         if message_type==None:
@@ -163,7 +180,15 @@ class Controller:
             files=[i for i in files if i.endswith(".mp3")]
             return message_type.capitalize()+"/"+random.choice(files)
         except FileNotFoundError:
-            print("{}: No such file or directory".format(path))
-            os._exit(1)
+            self.error("{}: No such file or directory".format(path),"C'è stato un problema di configurazione")
+
+    def error(self,text="Si è verificato un errore",audio=None):
+        if not audio:
+            audio=text
+        self.verbose=False   
+        self.say_text(audio)
+        print(text)
+        os._exit(1)
+
 
 
