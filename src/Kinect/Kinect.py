@@ -3,6 +3,7 @@ import numpy as np
 import cv2
 import os
 import sys
+import signal
 import random
 import time
 from contextlib import contextmanager
@@ -115,24 +116,29 @@ class Kinect_video_player:
             cv2.moveWindow('Depth',COLOR_VIDEO_RESOLUTION[1],window_y)
         with stderr_redirected(to=os.devnull):
             while True:
-                if self.close.value==1: 
+                try:
+                    if self.close.value==1: 
+                        freenect.sync_stop()
+                        return
+                    i = array_to_image(self.i_arr,self.i_shape)
+                    d = array_to_image(self.d_arr,self.d_shape)
+                    depth=self.get_depth_image()
+                    image=self.get_color_image()
+                    if depth is None or image is None:
+                        return
+                    if self.show_depth:
+                        cv2.imshow('Depth', depth)
+                    if self.show_video:   
+                        cv2.imshow('Video', image)
+                    if (self.show_depth or self.show_video) and cv2.waitKey(10) == 27:   
+                        freenect.sync_stop()
+                        break
+                    d[...]=depth
+                    i[...]=image
+                except KeyboardInterrupt:
                     freenect.sync_stop()
-                    return
-                i = array_to_image(self.i_arr,self.i_shape)
-                d = array_to_image(self.d_arr,self.d_shape)
-                depth=self.get_depth_image()
-                image=self.get_color_image()
-                if depth is None or image is None:
-                    return
-                if self.show_depth:
-                    cv2.imshow('Depth', depth)
-                if self.show_video:   
-                    cv2.imshow('Video', image)
-                if (self.show_depth or self.show_video) and cv2.waitKey(10) == 27:   
-                    freenect.sync_stop()
-                    break
-                d[...]=depth
-                i[...]=image
+
+
 
     def get_depth_image(self):
         f=freenect.sync_get_depth()
