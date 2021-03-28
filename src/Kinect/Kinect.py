@@ -105,6 +105,8 @@ class Kinect_video_player:
                 d = array_to_image(self.d_arr,self.d_shape)
                 depth=self.get_depth_image()
                 image=self.get_color_image()
+                if depth is None or image is None:
+                    return
                 if self.show_depth:
                     cv2.imshow('Depth', depth)
                 if self.show_video:   
@@ -115,11 +117,19 @@ class Kinect_video_player:
                 i[...]=image
 
     def get_depth_image(self):
-        return self.__pretty_depth_cv(freenect.sync_get_depth()[0])
+        f=freenect.sync_get_depth()
+        if f==None:
+            self.close.value=1
+            return None
+        return self.__pretty_depth_cv(f[0])
 
 
     def get_color_image(self):
-        return self.__video_cv(freenect.sync_get_video()[0])        
+        f=freenect.sync_get_video()
+        if f==None:
+            self.close.value=1
+            return None
+        return self.__video_cv(f[0])        
 
 
     def __pretty_depth(self,depth):
