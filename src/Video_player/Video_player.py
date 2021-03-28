@@ -19,7 +19,6 @@ class Video_player:
                 if current_id==-1 or self.close.value==1:
                     return
                 video_path=os.path.join("..","Media","Video",self.videos[current_id])
-            isclosed=0
             cap = cv2.VideoCapture(video_path)
             while True:
 
@@ -34,8 +33,4 @@ class Video_player:
                     #break
                 else:
                     break
-            # To break the loop if it is closed manually
-            if isclosed:
-                break
-
             cap.release()     
