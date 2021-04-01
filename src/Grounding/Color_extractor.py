@@ -19,13 +19,19 @@ class Color_extractor:
     def extract(self,image):
         lab = cv2.cvtColor(image, cv2.COLOR_BGR2LAB)
         rows,cols,channels = lab.shape
-        pixels=[[lab[i,j][0]/2.55,lab[i,j][1]-128,lab[i,j][2]-128] for j in range(cols) for i in range(rows)]
+        pixels=[self.cv2lab_to_cielab(lab[i,j]) for j in range(cols) for i in range(rows) if image[i,j].tolist()!=[0,0,0]]
         centroid_list=kmeans(pixels)
         #cv2.imshow('image',image)
         #cv2.waitKey(0)
         #cv2.destroyAllWindows()
         return self.classify(centroid_list),centroid_list
     
+    def cielab_to_cv2lab(self,cielab):
+        return [cielab[0]*2.55,cielab[1]+128,cielab[2]+128]
+
+    def cv2lab_to_cielab(self,cv2lab):
+        return [cv2lab[0]/2.55,cv2lab[1]-128,cv2lab[2]-128]
+
     def classify(self,features):
         centroids={ "nero":[10,0,0],                                                            # RGB(0, 0, 0)
                     "bianco": [100,0.00526049995830391,-0.010408184525267927],                  # RGB(255, 255, 255)
