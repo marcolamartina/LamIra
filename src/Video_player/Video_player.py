@@ -12,6 +12,7 @@ class Video_player:
 
     def run(self):
         cv2.namedWindow(self.name)
+        cv2.moveWindow(self.name,0,0)
         while True:
         #This is to check whether to break the first loop
             with self.lock:
