@@ -10,7 +10,7 @@ import sys
 
 
 class Controller:
-    def __init__(self, newstdin=sys.stdin, close=None, verbose=False, show_assistent=True, play_audio=True, microphone=False, language="it-IT",device_type="cpu", video_id=None, lock=None, videos=None, default=None, name="LamIra", image=None, depth=None, i_shape=None, d_shape=None):
+    def __init__(self, newstdin=sys.stdin, close=None, verbose=False, show_assistent=True, play_audio=True, microphone=False, language="it-IT",device_type="cpu", video_id=None, lock=None, videos=None, default=None, name="LamIra", image=None, depth=None, merged=None, i_shape=None, d_shape=None, m_shape=None):
         sys.stdin = os.fdopen(newstdin)
         self.name=name
         self.close=close
@@ -22,7 +22,7 @@ class Controller:
         self.grounding=Grounding(verbose)
         self.text_production=Text_production(verbose)
         self.text_to_speech=Text_to_speech(verbose,language,play_audio)
-        self.kinect=Kinect(verbose, image, depth, i_shape, d_shape)
+        self.kinect=Kinect(verbose, image, depth, merged, i_shape, d_shape, m_shape)
         if microphone:
             self.speech_to_text=Speech_to_text(verbose,language)
 
@@ -57,8 +57,9 @@ class Controller:
                 return      
             self.thinking()     
             #image=self.kinect.get_image_example()
-            image=self.kinect.get_image()
-            predictions=self.grounding.classify(image,best_intent)
+            image,depth=self.kinect.get_image()
+            merged=self.kinect.get_merged()
+            predictions=self.grounding.classify((image,depth,merged),best_intent)
             text=self.text_production.to_text_predictions(best_intent,predictions)
             self.say_text(text)    
 
@@ -84,13 +85,14 @@ class Controller:
                 return      
             self.thinking()   
             #image=self.kinect.get_image_example()
-            image=self.kinect.get_image()
+            image,depth=self.kinect.get_image()
+            merged=self.kinect.get_merged()
             label_confirmed=False
             while not label_confirmed:
                 label=self.get_label_input(best_intent)
                 confirm_response=self.get_input("confirm_label","Vuoi confermare {}?".format(label))
                 label_confirmed=self.verify_confirm(confirm_response)
-            self.grounding.learn(image,best_intent,label)
+            self.grounding.learn((image,depth,merged),best_intent,label)
             text=self.text_production.to_text_subject(best_intent,label)
             self.say_text(text)
 
@@ -163,13 +165,13 @@ class Controller:
             self.text_to_speech.speak_from_file(self.__message(video))
         else:
             self.text_to_speech.speak(text)
-        if self.show_assistent:
-            with self.lock:
-                if video=="quit":
+        with self.lock:
+            if video=="quit":
+                if self.show_assistent:
                     self.video_id.value=-1
-                    self.close.value=1
-                    return   
-                self.video_id.value=self.default               
+                self.close.value=1
+                return   
+            self.video_id.value=self.default               
 
     def __message(self, message_type):
         if message_type==None:

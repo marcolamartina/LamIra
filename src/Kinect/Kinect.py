@@ -6,6 +6,10 @@ import sys
 import signal
 import random
 import time
+if __package__:
+    from Kinect.Image_processing import Image_processing
+else:
+    from Image_processing import Image_processing
 from contextlib import contextmanager
 
 OFF=0
@@ -61,12 +65,14 @@ except:
 
 
 class Kinect:
-    def __init__(self, verbose, image, depth, i_shape, d_shape):
+    def __init__(self, verbose, image, depth, merged, i_shape, d_shape, m_shape):
         self.verbose=verbose
         self.image=image 
         self.depth=depth
+        self.merged=merged
         self.i_shape=i_shape
         self.d_shape=d_shape
+        self.m_shape=m_shape
 
     def get_image_example(self):
         try:
@@ -88,15 +94,23 @@ class Kinect:
         d = array_to_image(self.depth,self.d_shape)
         return i,d
 
+    def get_merged(self):
+        m = array_to_image(self.merged,self.m_shape)
+        return m    
+
     
 class Kinect_video_player:
-    def __init__(self, close, i_arr, d_arr, i_shape, d_shape, show_video, show_depth):
+    def __init__(self, close, i_arr, d_arr, m_arr, i_shape, d_shape, m_shape, show_video, show_depth, show_merged):
         self.i_arr=i_arr
         self.d_arr=d_arr
+        self.m_arr=m_arr
         self.i_shape=i_shape
         self.d_shape=d_shape
+        self.m_shape=m_shape
         self.show_video=show_video
         self.show_depth=show_depth
+        self.show_merged=show_merged
+        self.image_processing=Image_processing()
         self.close=close
 
         self.ctx, self.dev= self.__init_kinect__()        
@@ -113,7 +127,10 @@ class Kinect_video_player:
             cv2.moveWindow('Video',0 ,window_y)
         if self.show_depth:
             cv2.namedWindow('Depth')
-            cv2.moveWindow('Depth',COLOR_VIDEO_RESOLUTION[1],window_y) 
+            cv2.moveWindow('Depth',COLOR_VIDEO_RESOLUTION[1],window_y)
+        if self.show_merged:
+            cv2.namedWindow('Merged')
+            cv2.moveWindow('Merged',COLOR_VIDEO_RESOLUTION[1],0)      
         with stderr_redirected(to=os.devnull):
             while True:
                 try:
@@ -122,19 +139,25 @@ class Kinect_video_player:
                         return
                     i = array_to_image(self.i_arr,self.i_shape)
                     d = array_to_image(self.d_arr,self.d_shape)
+                    m = array_to_image(self.m_arr,self.m_shape)
                     depth=self.get_depth_image()
                     image=self.get_color_image()
                     if depth is None or image is None:
                         return
+                    image=self.image_processing.homography(image,depth)
+                    merged=self.image_processing.segmentation(image,depth)
                     if self.show_depth:
                         cv2.imshow('Depth', depth)
                     if self.show_video:   
                         cv2.imshow('Video', image)
-                    if (self.show_depth or self.show_video):
+                    if self.show_merged:   
+                        cv2.imshow('Merged', merged)    
+                    if (self.show_depth or self.show_video or self.show_merged):
                         cv2.waitKey(1)
                             
                     d[...]=depth
                     i[...]=image
+                    m[...]=merged
                 except KeyboardInterrupt:
                     freenect.sync_stop()
                     self.__del__() 
