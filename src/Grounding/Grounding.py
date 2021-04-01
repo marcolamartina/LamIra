@@ -8,6 +8,9 @@ else:
     from Texture_extractor import Texture_extractor    
 import random
 import os
+import numpy as np
+import cv2
+import matplotlib.pyplot as plt
 
 try:
     from google.colab import drive
@@ -34,24 +37,36 @@ class Grounding:
         self.shape_extractor=Shape_extractor()
         self.texture_extractor=Texture_extractor()
     def classify(self, scan, intent):
-        image,depth=scan
+        image,depth,merged=scan
         features={}
-        features['color']=self.color_extractor.extract(image)
+        features['color']=self.color_extractor.extract(merged)
         features['shape']=self.shape_extractor.extract(image)
         features['texture']=self.texture_extractor.extract(image)
         features['general']=sorted([(i, random.random()) for i in ["palla da tennis", "uovo", "banana", "pera", "anguria", "anguilla"]],key=lambda x:x[1])
          
         if self.verbose:
             print("Intent: {}".format(intent))
-            print("Color: {}\nColor features: {}\n".format(round_list(features['color'][0]),round_list(features['color'][1]))) 
+            print("Color: {}\nColor features: {}\n".format(round_list(features['color'][0]),round_list(features['color'][1])))
+            self.print_colors(features['color'][1])
             print("Shape: {}\nShape features: {}\n".format(round_list(features['shape'][0]),round_list(features['shape'][1]))) 
             print("Texture: {}\nTexture features: {}\n".format(round_list(features['texture'][0]),round_list(features['texture'][1])))         
         return features[intent[:-6]][0]
 
 
     def learn(self, scan, intent, label):
-        image,depth=scan
+        image,depth,merged=scan
         return
+
+    def print_colors(self,color_list):
+        color_matrix=None
+        for c in color_list:
+            color=self.color_extractor.cielab_to_cv2lab(c[0])
+            if color_matrix is not None:
+                color_matrix=np.concatenate((color_matrix,np.full((20,20,3),np.array(color))),axis=0)
+            else:
+                color_matrix=np.full((20,20,3),np.array(color))   
+        plt.imshow(cv2.cvtColor(color_matrix.astype(np.uint8), cv2.COLOR_LAB2RGB))
+        plt.show()    
 
 def main():
     import cv2
@@ -66,8 +81,9 @@ def main():
     path = os.path.join(data_dir_images,image)
     img = cv2.imread(path)
     depth = None
-    g=Grounding()
-    result=g.classify((img,depth),"color_query")
+    merged=None
+    g=Grounding(True)
+    result=g.classify((img,depth,img),"color_query")
     print(round_list(result))
 
 
