@@ -146,6 +146,11 @@ class Kinect_video_player:
                         return
                     image=self.image_processing.homography(image,depth)
                     merged=self.image_processing.segmentation(image,depth)
+                    d[...]=depth
+                    i[...]=image
+                    m[...]=merged
+                    roi_start,roi_end=self.get_roi(merged)
+                    merged = cv2.rectangle(merged, roi_start, roi_end, (0, 255, 255), 2)
                     if self.show_depth:
                         cv2.imshow('Depth', depth)
                     if self.show_video:   
@@ -154,14 +159,40 @@ class Kinect_video_player:
                         cv2.imshow('Merged', merged)    
                     if (self.show_depth or self.show_video or self.show_merged):
                         cv2.waitKey(1)
-                            
-                    d[...]=depth
-                    i[...]=image
-                    m[...]=merged
+                                
                 except KeyboardInterrupt:
                     freenect.sync_stop()
                     self.__del__() 
                     os._exit(1)   
+
+
+    def get_roi(self,image,tollerance=5):
+        min_x=COLOR_VIDEO_RESOLUTION[0]
+        min_y=COLOR_VIDEO_RESOLUTION[1]
+        max_x=0
+        max_y=0
+        for i in np.ndindex(image.shape[:2]):
+            if image[i].tolist()!=[0,0,0]:
+                if i[0]<min_x:
+                    min_x=i[0]
+                if i[1]<min_y:
+                    min_y=i[1]
+                if i[0]>max_x:
+                    max_x=i[0]
+                if i[1]>max_y:
+                    max_y=i[1]
+        for i in range(COLOR_VIDEO_RESOLUTION[0]):
+            
+
+
+        min_x=max(0,min_x-tollerance)
+        min_y=max(0,min_y-tollerance)
+        max_x=min(COLOR_VIDEO_RESOLUTION[0],max_x+tollerance)
+        max_y=min(COLOR_VIDEO_RESOLUTION[1],max_y+tollerance)
+        start_point=(min_y,min_x)
+        end_point=(max_y,max_x)
+        return start_point,end_point                     
+
 
     def get_depth_image(self):
         f=freenect.sync_get_depth()
@@ -267,8 +298,11 @@ def main():
     from multiprocessing import Process, Value, Lock, Array
     show_video=True
     show_depth=True
+    show_merged=True
+
     i_arr = np.zeros(COLOR_VIDEO_RESOLUTION,dtype=int)
     d_arr = np.zeros(DEPTH_VIDEO_RESOLUTION,dtype=int)
+    m_arr = np.zeros(COLOR_VIDEO_RESOLUTION,dtype=int)
 
     i_shape = i_arr.shape
     i_size = i_arr.size
@@ -278,12 +312,17 @@ def main():
     d_size = d_arr.size
     d_arr.shape = d_size
 
+    m_shape = m_arr.shape
+    m_size = m_arr.size
+    m_arr.shape = m_size
+
     image = Array('B', i_arr)
     depth = Array('B', d_arr)
+    merged = Array('B', m_arr)
 
     close = Value('i',  0)
 
-    kinect_video_player=Kinect_video_player(close, image, depth, i_shape, d_shape, show_video, show_depth)
+    kinect_video_player=Kinect_video_player(close, image, depth, merged, i_shape, d_shape, m_shape, show_video, show_depth, show_merged)
     kinect_video_player.run() 
 
 if __name__=="__main__":
