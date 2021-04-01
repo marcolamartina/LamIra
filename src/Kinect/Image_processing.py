@@ -10,7 +10,7 @@ class Image_processing:
     def segmentation(self, color, depth):
         mask=self.get_mask(depth)
         merged=self.merge(color,mask)
-        return merged 
+        return merged,mask
 
     def get_homography(self):
         h = np.array([[ 1.14747786e+00, 3.84008813e-02, -2.07838484e+01],

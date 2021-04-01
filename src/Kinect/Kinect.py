@@ -145,11 +145,11 @@ class Kinect_video_player:
                     if depth is None or image is None:
                         return
                     image=self.image_processing.homography(image,depth)
-                    merged=self.image_processing.segmentation(image,depth)
+                    merged,mask=self.image_processing.segmentation(image,depth)
                     d[...]=depth
                     i[...]=image
                     m[...]=merged
-                    roi_start,roi_end=self.get_roi(merged)
+                    roi_start,roi_end=self.get_roi(mask)
                     merged = cv2.rectangle(merged, roi_start, roi_end, (0, 255, 255), 2)
                     if self.show_depth:
                         cv2.imshow('Depth', depth)
@@ -167,30 +167,15 @@ class Kinect_video_player:
 
 
     def get_roi(self,image,tollerance=5):
-        min_x=COLOR_VIDEO_RESOLUTION[0]
-        min_y=COLOR_VIDEO_RESOLUTION[1]
-        max_x=0
-        max_y=0
-        for i in np.ndindex(image.shape[:2]):
-            if image[i].tolist()!=[0,0,0]:
-                if i[0]<min_x:
-                    min_x=i[0]
-                if i[1]<min_y:
-                    min_y=i[1]
-                if i[0]>max_x:
-                    max_x=i[0]
-                if i[1]>max_y:
-                    max_y=i[1]
-        for i in range(COLOR_VIDEO_RESOLUTION[0]):
-            
-
-
+        min_x,min_y,w,h = cv2.boundingRect(image)
+        max_x=min_x+w
+        max_y=min_y+h
         min_x=max(0,min_x-tollerance)
         min_y=max(0,min_y-tollerance)
-        max_x=min(COLOR_VIDEO_RESOLUTION[0],max_x+tollerance)
-        max_y=min(COLOR_VIDEO_RESOLUTION[1],max_y+tollerance)
-        start_point=(min_y,min_x)
-        end_point=(max_y,max_x)
+        max_x=min(COLOR_VIDEO_RESOLUTION[1],max_x+tollerance)
+        max_y=min(COLOR_VIDEO_RESOLUTION[0],max_y+tollerance)
+        start_point=(min_x,min_y)
+        end_point=(max_x,max_y)
         return start_point,end_point                     
 
 
