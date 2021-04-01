@@ -69,7 +69,6 @@ class Grounding:
         plt.show()    
 
 def main():
-    import cv2
     try:
         images = os.listdir( data_dir_images )
         images=[i for i in images if i.endswith(".jpg")]
