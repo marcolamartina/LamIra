@@ -78,7 +78,7 @@ class Controller:
             if best_intent=="exit":
                 self.say("quit")
                 return
-            if best_intent=="training_mode": # change to query mode when intent training weight are trained
+            if best_intent=="query_mode":
                 self.say("query_mode")
                 self.intent_classification.set_class_type("query")
                 self.query_mode()
