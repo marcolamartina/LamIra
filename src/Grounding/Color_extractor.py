@@ -1,6 +1,7 @@
 import cv2
 import math
 import os
+import numpy as np
 if __package__:
     from Grounding.Clustering import kmeans, euclidean_distance
 else:
@@ -19,18 +20,13 @@ class Color_extractor:
     def extract(self,image):
         lab = cv2.cvtColor(image, cv2.COLOR_BGR2LAB)
         rows,cols,channels = lab.shape
-        pixels=[self.cv2lab_to_cielab(lab[i,j]) for j in range(cols) for i in range(rows) if image[i,j].tolist()!=[0,0,0]]
+        pixels=[cv2lab_to_cielab(lab[i,j]) for j in range(cols) for i in range(rows) if image[i,j].tolist()!=[0,0,0]]
         centroid_list=kmeans(pixels)
         #cv2.imshow('image',image)
         #cv2.waitKey(0)
         #cv2.destroyAllWindows()
         return self.classify(centroid_list),centroid_list
-    
-    def cielab_to_cv2lab(self,cielab):
-        return [cielab[0]*2.55,cielab[1]+128,cielab[2]+128]
-
-    def cv2lab_to_cielab(self,cv2lab):
-        return [cv2lab[0]/2.55,cv2lab[1]-128,cv2lab[2]-128]
+     
 
     def classify(self,features):
         centroids={ "nero":[10,0,0],                                                            # RGB(0, 0, 0)
@@ -69,8 +65,17 @@ class Color_extractor:
         angle = math.degrees(math.atan2(y,x))
         return (math.hypot(x,y), angle) 
 
+def cielab_to_cv2lab(cielab):
+    return [cielab[0]*2.55,cielab[1]+128,cielab[2]+128]
+
+def cv2lab_to_cielab(cv2lab):
+    return [cv2lab[0]/2.55,cv2lab[1]-128,cv2lab[2]-128]
+
+def cielab_to_rgb(lab):
+    rgb=cv2.cvtColor(np.array([[cielab_to_cv2lab(lab)]]).astype(np.uint8), cv2.COLOR_LAB2RGB)
+    return rgb.tolist()[0][0]
+
 def main():
-    import cv2
     import random
     from Grounding import round_list
     try:
