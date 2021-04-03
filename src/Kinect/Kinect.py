@@ -12,15 +12,20 @@ else:
     from Image_processing import Image_processing
 from contextlib import contextmanager
 
-OFF=0
-GREEN=1
-RED=2
-YELLOW=3
-BLINK_GREEN=4
-BLINK_RED_YELLOW=5
-CENTER=0
-UP=30
-DOWN=-30
+accept_color =  {   
+                "OFF":0, 
+                "GREEN":1,
+                "RED":2, 
+                "YELLOW":3, 
+                "BLINK_GREEN":4, 
+                "BLINK_RED_YELLOW":5
+                }
+accept_positions =  {
+                    "DOWN":-30,
+                    "CENTER":0,
+                    "UP":30
+                    }
+
 
 COLOR_VIDEO_RESOLUTION=(480,640,3)
 DEPTH_VIDEO_RESOLUTION=(480,640)
@@ -115,7 +120,7 @@ class Kinect_video_player:
 
         self.ctx, self.dev= self.__init_kinect__()        
         self.set_led('GREEN')
-        self.set_tilt_degs(CENTER)
+        self.set_tilt_degs('CENTER')
         freenect.close_device(self.dev)
         freenect.shutdown(self.ctx)
 
@@ -251,7 +256,7 @@ class Kinect_video_player:
     def __del__(self):
         self.ctx, self.dev= self.__init_kinect__() 
         self.set_led('RED')
-        self.set_tilt_degs(DOWN)
+        self.set_tilt_degs('DOWN')
         time.sleep(2)
         self.set_led('OFF')
         freenect.close_device(self.dev)
@@ -259,17 +264,16 @@ class Kinect_video_player:
 
     def set_led(self, color):
         color=color.upper()
-        accept_color=["OFF", "GREEN", "RED", "YELLOW", "BLINK_GREEN", "BLINK_RED_YELLOW"]
-        if color not in accept_color:
-            print("Color must be in corret form. \ne.g. " + str(accept_color))
+        if color not in accept_color.keys():
+            print("Color must be in corret form. \ne.g. " + str(accept_color.keys()))
         else:
-            freenect.set_led(self.dev, globals()[color])
+            freenect.set_led(self.dev, accept_color[color])
 
     def set_tilt_degs(self, degree):
-        if type(degree)==str:
-            degree = int(globals()[degree])
+        if degree in accept_positions.keys():
+            degree = accept_positions[degree]
 
-        if abs(degree) > UP:
+        if not accept_positions["DOWN"]<=degree<=accept_positions["UP"] :
             print("Degree angle must be beetween -30 and 30")
         else:
             freenect.set_tilt_degs(self.dev, degree)
