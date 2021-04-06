@@ -17,7 +17,7 @@ class Controller:
         self.show_assistent=show_assistent
         self.verbose=verbose
         self.microphone=microphone
-        self.intent_threshold=70
+        self.intent_threshold=60
         self.intent_classification=Intent_classification(verbose,device_type,language)
         self.grounding=Grounding(verbose)
         self.text_production=Text_production(verbose)
@@ -114,7 +114,7 @@ class Controller:
         if self.microphone and (self.verbose or not self.show_assistent):
             print("Sto ascoltando...")
         elif not self.microphone:
-            request = input("Scrivi la tua richiesta: ")
+            request = input("Puoi scrivere: ")
             return request
         flag=self.speech_to_text.ERROR    
         while flag!=self.speech_to_text.SUCCESS:
