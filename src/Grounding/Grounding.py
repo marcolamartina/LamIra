@@ -77,6 +77,7 @@ class Grounding:
                 with open(path, "r") as f:
                     for line in f.readlines():
                         line=line.strip()
+                        line=line.split("#")[0]
                         points.append(ast.literal_eval(line))
                     space.space[knowledge_name]=ConvexHull(points,incremental=True)
  
@@ -85,7 +86,7 @@ class Grounding:
         # TODO general learn
         image,depth,merged=scan
         space_label=intent[:-9]
-        features=self.extract(scan)
+        features=self.extract(scan,space_label)
         feature=features[space_label][1][0][0]
         self.spaces.insert(space_label,label,feature)
 
@@ -198,7 +199,7 @@ def main(mod):
     if mod=="classify":
         g.classify((img,depth,img),"color_query")
     elif mod=="learning":    
-        g.learn((img,depth,img),"color_query",image[:-4].split("-")[0])
+        g.learn((img,depth,img),"color_training",image[:-4].split("-")[0])
         g.spaces.show_spaces()
 
 if __name__=="__main__":
