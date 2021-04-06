@@ -44,16 +44,16 @@ class Grounding:
         self.load_knowledge()
         
     def classify(self, scan, intent):
-        features=self.extract(scan) 
+        space=intent[:-6]
+        features=self.extract(scan,space) 
         if self.verbose:
             print("Intent: {}".format(intent))
-            print("Color: {}\nColor features: {}\n".format(round_list(features['color'][0]),round_list(features['color'][1])))
-            self.print_colors(features['color'][1])
-            print("Shape: {}\nShape features: {}\n".format(round_list(features['shape'][0]),round_list(features['shape'][1]))) 
-            print("Texture: {}\nTexture features: {}\n".format(round_list(features['texture'][0]),round_list(features['texture'][1])))         
-        return features[intent[:-6]][0]
+            print("{}: {}\n{} features: {}\n".format(space,round_list(features[space][0]),space,round_list(features[space][1])))
+            if space=="color":
+                self.print_colors(features['color'][1])        
+        return features[space][0]
 
-    def extract(self,scan):
+    def extract(self,scan,space_name):
         # TODO extract only feature needed
         image,depth,merged=scan
         features={}
