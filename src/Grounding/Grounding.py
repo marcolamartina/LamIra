@@ -14,6 +14,8 @@ import matplotlib.pyplot as plt
 from scipy.spatial import ConvexHull
 from mpl_toolkits.mplot3d import Axes3D
 import pickle
+import itertools
+import math
 import ast
 
 try:
@@ -32,7 +34,7 @@ def round_list(l):
     approx=4
     if type(l[0][0]) is list:
         return [([round(e,approx) for e in a],round(b,approx)) for (a,b) in l]
-    else:  
+    else:
         return [(a,round(b,approx)) for (a,b) in l]  
 
 class Grounding:
@@ -45,22 +47,42 @@ class Grounding:
         
     def classify(self, scan, intent):
         space=intent[:-6]
-        features=self.extract(scan,space) 
+        features=self.extract(scan,space)
+        labels=self.classify_features(features,space) 
         if self.verbose:
             print("Intent: {}".format(intent))
-            print("{}: {}\n{} features: {}\n".format(space,round_list(features[space][0]),space,round_list(features[space][1])))
+            print("\n{}: {}\n{} features: {}\n".format(space,round_list(labels),space,round_list(features[space])))
             if space=="color":
-                self.print_colors(features['color'][1])        
-        return features[space][0]
+                self.print_colors(features['color'])        
+        return labels
+
+    def classify_features(self,features,space_name):
+        if space_name=="general":
+            return sorted([(i, random.random()) for i in ["palla da tennis", "uovo", "banana", "pera", "anguria", "anguilla"]],key=lambda x:x[1])
+        feature=features[space_name][0][0] # Using only the feature more relevant
+        distances=self.spaces.spaces[space_name].classify(feature) 
+        if self.verbose:
+            self.spaces.spaces[space_name].show_space(points=[feature])
+            plt.show()
+        classifications=[]
+        probability=0
+        for l,d in distances:
+            p=1/(d+0.001)
+            probability+=p
+            classifications.append((l,p))
+        classifications=[(l,d/probability) for l,d in classifications]
+        classifications.sort(key=lambda x:x[1],reverse=True)     
+        return classifications
 
     def extract(self,scan,space_name):
-        # TODO extract only feature needed
         image,depth,merged=scan
         features={}
-        features['color']=self.color_extractor.extract(merged)
-        features['shape']=self.shape_extractor.extract(image)
-        features['texture']=self.texture_extractor.extract(image)
-        features['general']=sorted([(i, random.random()) for i in ["palla da tennis", "uovo", "banana", "pera", "anguria", "anguilla"]],key=lambda x:x[1])
+        if space_name in ["color","general"]:
+            features['color']=self.color_extractor.extract(merged)
+        if space_name in ["shape","general"]:   
+            features['shape']=self.shape_extractor.extract(image)
+        if space_name in ["texture","general"]:     
+            features['texture']=self.texture_extractor.extract(image)
         return features
 
     def load_knowledge(self):
@@ -87,7 +109,7 @@ class Grounding:
         image,depth,merged=scan
         space_label=intent[:-9]
         features=self.extract(scan,space_label)
-        feature=features[space_label][1][0][0]
+        feature=features[space_label][0][0]
         self.spaces.insert(space_label,label,feature)
 
         
@@ -124,6 +146,75 @@ class Tensor_space:
         self.space_label=space_label
         self.space_index=space_index
 
+    def classify(self,feature):
+        distances=[]
+        for label,hull in self.space.items():
+            d=self.distance_hull_point(feature,hull)
+            if d==0:
+                return [(label,d)]
+            distances.append((label,d)) 
+        return sorted(distances,key=lambda x:x[1])    
+
+    def point_in_hull(self, point, hull, tolerance=1e-12):
+        return all(
+            (np.dot(eq[:-1], point) + eq[-1] <= tolerance)
+            for eq in hull.equations)
+
+    def get_corners(self,vertices):
+        return list(itertools.combinations(vertices,2))
+
+    def distance_hull_point(self, point, hull):
+        if self.point_in_hull(point, hull):
+            return 0.0
+        return min([self.distance_point_face(point,(hull.points[s[0]],s[1])) for s in zip(hull.simplices,hull.equations)])    
+
+    def project(self, point, plane, tolerance=1e-12):
+        if abs(np.dot(plane[:-1], point) + plane[-1]) <= tolerance:
+            return point
+        t = -(plane[-1] + np.dot(plane[:-1], point))/(np.sum(plane[:-1]**2))
+        return point + plane[:-1]*t  
+
+    def triangle_area(self,p1,p2,p3):
+        segments=list(itertools.combinations([p1,p2,p3],2))
+        segments_len=[np.linalg.norm(s[0]-s[1]) for s in segments]
+        semiperimeter=sum(segments_len)/2
+        result=semiperimeter
+        for l in segments_len:
+            result*=semiperimeter-l
+        return math.sqrt(result)
+    
+    def in_triangle(self,point_projection,vertices,corners=None,tolerance=1e-12):
+        if not corners:
+            corners=self.get_corners(vertices)
+        total_area=self.triangle_area(*vertices)
+        sub_triangle_areas=[(self.triangle_area(point_projection,p1,p2)/total_area) for p1,p2 in corners]
+        return all(0<=t<=1 for t in sub_triangle_areas) and 1-tolerance<=sum(sub_triangle_areas)<=1+tolerance
+
+    def distance_point_corner(self,p,corner):
+        a, b = corner
+        # normalized tangent vector
+        d = np.divide(b - a, np.linalg.norm(b - a))
+        # signed parallel distance components
+        s = np.dot(a - p, d)
+        t = np.dot(p - b, d)
+        # clamped parallel distance
+        h = np.maximum.reduce([s, t, 0])
+        # perpendicular distance component
+        c = np.cross(p - a, d)
+        return np.hypot(h, np.linalg.norm(c))
+
+    def distance_point_plane(self,point,plane):
+        return abs(plane[-1] + np.dot(plane[:-1], point))/math.sqrt(np.sum(plane[:-1]**2))
+
+    def distance_point_face(self,point,face):
+        vertices,plane=face
+        point_projection=self.project(point,plane)
+        corners=self.get_corners(vertices)
+        if self.in_triangle(point_projection,vertices,corners):
+            return self.distance_point_plane(point,plane)
+        else:
+            return min([self.distance_point_corner(point,c) for c in corners])             
+
     def insert(self,label,point):
         if label in self.space.keys(): # label just learned
             #old_points=np.array([self.space[label].points[j] for j in self.space[label].vertices])
@@ -159,27 +250,39 @@ class Tensor_space:
         p[axis]+=increment*direction
         return p
 
-    def show_space(self,fig=None):
+    def show_space(self,fig=None,points=[]):
         if not fig:
-            fig = plt.figure(num="Tensor Spaces",figsize=(15,5))
-        ax = fig.add_subplot(1,3,self.space_index+1, projection="3d")
+            fig = plt.figure(num="Tensor Space",figsize=(8,8))
+            ax = fig.add_subplot(1,1,1, projection="3d")
+        else:    
+            ax = fig.add_subplot(1,3,self.space_index+1, projection="3d")
         ax.set_title(self.space_label)
 
         for label,hull in self.space.items():
-            for s in hull.simplices:
-                color=[i/255 for i in cielab_to_rgb(hull.points[0])]
+            color=self.get_color_plot(hull.points[0])
+            for s in hull.simplices:  
                 s = np.append(s, s[0])  # Here we cycle back to the first coordinate
-                ax.plot(hull.points.T[0], hull.points.T[1], hull.points.T[2], "o", color=color)
-                ax.plot(hull.points[s, 0], hull.points[s, 1], hull.points[s, 2],"-", color=color)
-                ax.text(hull.points[0][0],hull.points[0][1],hull.points[0][2], label, size=10, zorder=1, color='k')
+                ax.plot(hull.points.T[2], hull.points.T[1], hull.points.T[0], "o", color=color)
+                ax.plot(hull.points[s, 2], hull.points[s, 1], hull.points[s, 0],"-", color=color)
+                ax.text(hull.points[0][2],hull.points[0][1],hull.points[0][0], label, size=10, zorder=1, color='k')
+        for i,p in enumerate(points):
+            color=self.get_color_plot(p)
+            ax.plot(p[2], p[1], p[0], "o", markersize=20, color=color)
+            ax.text(p[2], p[1], p[0], "point_"+str(i), size=20, zorder=1, color='k')
 
         # Make axis label
         if self.space_label=="color":
-            axis_label={"x":"L", "y":"A", "z":"B"}
+            axis_label={"x":"B", "y":"A", "z":"L"}
         else:
             axis_label={"x":"x", "y":"y", "z":"z"}    
         for i,label in axis_label.items():
             eval("ax.set_{:s}label('{:s}')".format(i, label))
+        ax.invert_xaxis()    
+
+    def get_color_plot(self,p):
+        if self.space_label=="color":
+            return [i/255 for i in cielab_to_rgb(p)]
+        return [random.random(),random.random(),random.random()]        
        
 
 def main(mod):
@@ -203,6 +306,6 @@ def main(mod):
         g.spaces.show_spaces()
 
 if __name__=="__main__":
-    main("learning")           
+    main("classify")           
 
 

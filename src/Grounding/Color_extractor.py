@@ -25,7 +25,7 @@ class Color_extractor:
         #cv2.imshow('image',image)
         #cv2.waitKey(0)
         #cv2.destroyAllWindows()
-        return self.classify(centroid_list),centroid_list
+        return centroid_list
      
 
     def classify(self,features):
