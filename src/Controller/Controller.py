@@ -10,7 +10,7 @@ import sys
 
 
 class Controller:
-    def __init__(self, newstdin=sys.stdin, close=None, verbose=False, show_assistent=True, play_audio=True, microphone=False, language="it-IT",device_type="cpu", video_id=None, lock=None, videos=None, default=None, name="LamIra", image=None, depth=None, merged=None, i_shape=None, d_shape=None, m_shape=None):
+    def __init__(self, newstdin=sys.stdin, close=None, verbose=False, show_assistent=True, play_audio=True, microphone=False, language="it-IT",device_type="cpu", video_id=None, lock=None, videos=None, default=None, name="LamIra", image=None, depth=None, merged=None, roi=None, i_shape=None, d_shape=None, m_shape=None):
         sys.stdin = os.fdopen(newstdin)
         self.name=name
         self.close=close
@@ -22,7 +22,7 @@ class Controller:
         self.grounding=Grounding(verbose)
         self.text_production=Text_production(verbose)
         self.text_to_speech=Text_to_speech(verbose,language,play_audio)
-        self.kinect=Kinect(verbose, image, depth, merged, i_shape, d_shape, m_shape)
+        self.kinect=Kinect(verbose, image, depth, merged, roi, i_shape, d_shape, m_shape)
         if microphone:
             self.speech_to_text=Speech_to_text(verbose,language)
 

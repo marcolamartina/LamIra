@@ -70,7 +70,7 @@ except:
 
 
 class Kinect:
-    def __init__(self, verbose, image, depth, merged, i_shape, d_shape, m_shape):
+    def __init__(self, verbose, image, depth, merged, roi, i_shape, d_shape, m_shape):
         self.verbose=verbose
         self.image=image 
         self.depth=depth
@@ -78,6 +78,7 @@ class Kinect:
         self.i_shape=i_shape
         self.d_shape=d_shape
         self.m_shape=m_shape
+        self.roi=roi
 
     def get_image_example(self):
         try:
@@ -101,17 +102,28 @@ class Kinect:
 
     def get_merged(self):
         m = array_to_image(self.merged,self.m_shape)
-        return m    
+        return m
+
+    def get_image_roi(self):
+        i = array_to_image(self.image,self.i_shape)
+        d = array_to_image(self.depth,self.d_shape)
+        start=(self.roi[0],self.roi[1])
+        end=(self.roi[2],self.roi[3])
+        i_roi = i[start[1]:end[1], start[0]:end[0]]
+        d_roi = d[start[1]:end[1], start[0]:end[0]]
+        return i_roi,d_roi
+
 
     
 class Kinect_video_player:
-    def __init__(self, close, i_arr, d_arr, m_arr, i_shape, d_shape, m_shape, show_video, show_depth, show_merged):
+    def __init__(self, close, i_arr, d_arr, m_arr, roi, i_shape, d_shape, m_shape, show_video, show_depth, show_merged):
         self.i_arr=i_arr
         self.d_arr=d_arr
         self.m_arr=m_arr
         self.i_shape=i_shape
         self.d_shape=d_shape
         self.m_shape=m_shape
+        self.roi=roi
         self.show_video=show_video
         self.show_depth=show_depth
         self.show_merged=show_merged
@@ -181,8 +193,13 @@ class Kinect_video_player:
         max_y=min(COLOR_VIDEO_RESOLUTION[0],max_y+tollerance)
         start_point=(min_x,min_y)
         end_point=(max_x,max_y)
+        self.set_roi([min_x,min_y,max_x,max_y])
         return start_point,end_point                     
 
+    def set_roi(self,points):
+        for i in range(4):
+            self.roi[i]=points[i]
+        
 
     def get_depth_image(self):
         f=freenect.sync_get_depth()
@@ -308,11 +325,13 @@ def main():
     image = Array('B', i_arr)
     depth = Array('B', d_arr)
     merged = Array('B', m_arr)
+    roi = Array('i',[0,0,0,0]) 
 
     close = Value('i',  0)
 
-    kinect_video_player=Kinect_video_player(close, image, depth, merged, i_shape, d_shape, m_shape, show_video, show_depth, show_merged)
-    kinect_video_player.run() 
+    kinect_video_player=Kinect_video_player(close, image, depth, merged, roi, i_shape, d_shape, m_shape, show_video, show_depth, show_merged)
+    kinect_video_player.run()
+
 
 if __name__=="__main__":
     main()

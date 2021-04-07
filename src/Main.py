@@ -19,12 +19,12 @@ play_audio=False
 microphone=False
 device_type="cpu"
 
-def logic_start(close, video_id, lock, videos, default, name, image, depth, merged, i_shape, d_shape, m_shape, newstdin):
-    controller=Controller(newstdin,close, verbose, show_assistent, play_audio, microphone, language,device_type,video_id, lock, videos, default, name, image, depth, merged, i_shape, d_shape, m_shape)
+def logic_start(close, video_id, lock, videos, default, name, image, depth, merged, roi, i_shape, d_shape, m_shape, newstdin):
+    controller=Controller(newstdin,close, verbose, show_assistent, play_audio, microphone, language,device_type,video_id, lock, videos, default, name, image, depth, merged, roi, i_shape, d_shape, m_shape)
     controller.run()
 
-def kinect_video_player_start(close, image, depth, merged, i_shape, d_shape, m_shape, show_video, show_depth, show_merged):
-    kinect_video_player=Kinect_video_player(close, image, depth, merged, i_shape, d_shape, m_shape, show_video, show_depth, show_merged)
+def kinect_video_player_start(close, image, depth, merged, roi, i_shape, d_shape, m_shape, show_video, show_depth, show_merged):
+    kinect_video_player=Kinect_video_player(close, image, depth, merged, roi, i_shape, d_shape, m_shape, show_video, show_depth, show_merged)
     kinect_video_player.run()
 
 def video_player_start(close, video_id, lock, videos, default, name):
@@ -68,13 +68,14 @@ def main():
     image = Array('B', i_arr)
     depth = Array('B', d_arr)
     merged = Array('B', m_arr)
+    roi = Array('i',[0,0,0,0])
 
     newstdin = sys.stdin.fileno()
 
-    logic = Process(target=logic_start,args=(close, video_id, lock, videos, default, name, image, depth, merged, i_shape, d_shape, m_shape, newstdin))
+    logic = Process(target=logic_start,args=(close, video_id, lock, videos, default, name, image, depth, merged, roi, i_shape, d_shape, m_shape, newstdin))
     if show_assistent:
         video_player = Process(target=video_player_start,args=(close, video_id, lock, videos, default, name))
-    kinect_video_player = Process(target=kinect_video_player_start,args=(close, image, depth, merged, i_shape, d_shape, m_shape, show_video, show_depth, show_merged))
+    kinect_video_player = Process(target=kinect_video_player_start,args=(close, image, depth, merged, roi, i_shape, d_shape, m_shape, show_video, show_depth, show_merged))
     
     logic.start()
     if show_assistent:
