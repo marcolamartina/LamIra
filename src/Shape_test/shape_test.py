@@ -78,7 +78,7 @@ def humoments(filename):
 
 def main():
     files = os.listdir( dir_name )
-    files=[i for i in files if i.endswith(".png") and (i[:3]=="tri" or i[:3]=="thu" or "byhand" in i)]
+    files=[i for i in files if i.endswith(".png") and (i[:3]=="tri" or i[:3]=="thu" or i[:3]=="fis" or "byhand" in i)]
     files.sort()
     ref=files[0]
     ref_im,ref_humoments=humoments(ref)
