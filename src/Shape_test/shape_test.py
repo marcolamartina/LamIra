@@ -78,7 +78,7 @@ def humoments(filename):
 
 def main():
     files = os.listdir( dir_name )
-    files=[i for i in files if i.endswith(".png") and (i[:3]=="tri" or i[:3]=="thu" or i[:3]=="fis" or "byhand" in i)]
+    files=[i for i in files if i.endswith(".png")]
     files.sort()
     ref=files[0]
     ref_im,ref_humoments=humoments(ref)
@@ -102,15 +102,15 @@ def main():
 
     fig = plt.figure(figsize=(10,10))
     ax = fig.add_subplot(1,1,1, projection="3d")
-    colors=[(1, 0, 0),(0, 0, 0),(0, 1, 0),(0, 0, 1),(0, 1, 1),(1, 0, 1),(1, 1, 0)]
+    colors=[(1, 0, 0),(0, 0, 0),(0, 1, 0),(0, 0, 1),(0, 1, 1),(1, 0, 1),(0.5, 0, 0.5),(0.5, 0.5, 0)]
 
     ax.set_title('Shape')
-    p=np.array([1.52,5.0,9.0])
-    ax.plot(p.T[0], p.T[1], p.T[2], "o", color=(0,1,0))
+    #p=np.array([1.52,5.0,9.0])
+    #ax.plot(p.T[0], p.T[1], p.T[2], "o", color=(0,1,0))
     for i,hull_and_label in enumerate(hulls):
         hull,shape_label=hull_and_label
-        distance=distance_hull_point(p,hull)
-        print(shape_label,distance) 
+        #distance=distance_hull_point(p,hull)
+        #print(shape_label,distance) 
         for s,plane in zip(hull.simplices,hull.equations):
             s = np.append(s, s[0])  # Here we cycle back to the first coordinate
             ax.plot(hull.points.T[0], hull.points.T[1], hull.points.T[2], "o", color=colors[i])
