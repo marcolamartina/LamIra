@@ -1,11 +1,3 @@
-if __package__:
-    from Grounding.Color_extractor import Color_extractor, cielab_to_cv2lab, cv2lab_to_cielab, cielab_to_rgb
-    from Grounding.Shape_extractor import Shape_extractor
-    from Grounding.Texture_extractor import Texture_extractor
-else:
-    from Color_extractor import Color_extractor, cielab_to_cv2lab, cv2lab_to_cielab, cielab_to_rgb
-    from Shape_extractor import Shape_extractor
-    from Texture_extractor import Texture_extractor    
 import random
 import os
 import numpy as np
@@ -17,6 +9,14 @@ import pickle
 import itertools
 import math
 import ast
+if __package__:
+    from Grounding.Color_extractor import Color_extractor, cielab_to_cv2lab, cv2lab_to_cielab, cielab_to_rgb
+    from Grounding.Shape_extractor import Shape_extractor
+    from Grounding.Texture_extractor import Texture_extractor
+else:
+    from Color_extractor import Color_extractor, cielab_to_cv2lab, cv2lab_to_cielab, cielab_to_rgb
+    from Shape_extractor import Shape_extractor
+    from Texture_extractor import Texture_extractor 
 
 try:
     from google.colab import drive
@@ -32,10 +32,13 @@ def round_list(l):
     if not l:
         return None
     approx=4
-    if type(l[0][0]) is list:
-        return [([round(e,approx) for e in a],round(b,approx)) for (a,b) in l]
+    if not hasattr(l[0], '__getitem__'):
+        return [round(a,approx) for a in l]
+    elif not type(l[0][0]) is list:
+        return [(a,round(b,approx)) for (a,b) in l]      
     else:
-        return [(a,round(b,approx)) for (a,b) in l]  
+        return [([round(e,approx) for e in a],round(b,approx)) for (a,b) in l]
+      
 
 class Grounding:
     def __init__(self,verbose=False):
@@ -48,8 +51,10 @@ class Grounding:
     def classify(self, scan, intent):
         space=intent[:-6]
         features=self.extract(scan,space)
-        labels=self.classify_features(features,space) 
+        labels=self.classify_features(features,space)
         if self.verbose:
+            if space=="shape":
+                features[space]=features[space].tolist()
             print("Intent: {}".format(intent))
             print("\n{}: {}\n{} features: {}\n".format(space,round_list(labels),space,round_list(features[space])))
             if space=="color":
@@ -59,7 +64,11 @@ class Grounding:
     def classify_features(self,features,space_name):
         if space_name=="general":
             return sorted([(i, random.random()) for i in ["palla da tennis", "uovo", "banana", "pera", "anguria", "anguilla"]],key=lambda x:x[1])
-        feature=features[space_name][0][0] # Using only the feature more relevant
+        feature=features[space_name]
+        if space_name=="color":
+            feature=feature[0][0] # Using only the feature more relevant
+        if space_name=="shape":
+            feature=feature[:3] # Using only the feature more relevant    
         distances=self.spaces.spaces[space_name].classify(feature) 
         if self.verbose:
             self.spaces.spaces[space_name].show_space(points=[feature])
@@ -80,7 +89,7 @@ class Grounding:
         if space_name in ["color","general"]:
             features['color']=self.color_extractor.extract(merged)
         if space_name in ["shape","general"]:   
-            features['shape']=self.shape_extractor.extract(image)
+            features['shape']=self.shape_extractor.extract(merged)
         if space_name in ["texture","general"]:     
             features['texture']=self.texture_extractor.extract(image)
         return features
@@ -101,6 +110,8 @@ class Grounding:
                         line=line.strip()
                         line=line.split("#")[0]
                         points.append(ast.literal_eval(line))
+                    if space_label=="shape":
+                        points=[p[:3] for p in points]    
                     space.space[knowledge_name]=ConvexHull(points,incremental=True)
  
 
@@ -285,7 +296,7 @@ class Tensor_space:
         return [random.random(),random.random(),random.random()]        
        
 
-def main(mod):
+def main(mod,space):
     try:
         images = os.listdir( data_dir_images )
         images=[i for i in images if i.endswith(".jpg")]
@@ -296,16 +307,18 @@ def main(mod):
     print("Image: {}".format(image))   
     path = os.path.join(data_dir_images,image)
     img = cv2.imread(path)
+    if space=="shape":
+        img=~img
     depth = None
     merged=None
     g=Grounding(True)
     if mod=="classify":
-        g.classify((img,depth,img),"color_query")
+        g.classify((img,depth,img),space+"_query")
     elif mod=="learning":    
-        g.learn((img,depth,img),"color_training",image[:-4].split("-")[0])
+        g.learn((img,depth,img),space+"_training",image[:-4].split("-")[0])
         g.spaces.show_spaces()
 
 if __name__=="__main__":
-    main("classify")           
+    main("classify","shape")           
 
 

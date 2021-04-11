@@ -89,9 +89,9 @@ def main():
     path = os.path.join(data_dir_images,image)
     img = cv2.imread(path)
     e=Color_extractor()
-    color_label,centroids=e.extract(img)
+    centroids=e.extract(img)
     print("Centroid list: {}".format(round_list(centroids)))
-    print("Color label first centroid: {}".format(round_list(color_label)))
+
 
 
 if __name__=="__main__":

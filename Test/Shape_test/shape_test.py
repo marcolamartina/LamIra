@@ -11,7 +11,7 @@ import math
 import itertools
 
 dir_name=os.path.dirname(__file__)
-
+save_knowledge=False
 
 def hu_log(humoments):
     values=[]
@@ -35,45 +35,38 @@ def moments_distance(hu1,hu2):
     return manhatten
 
 def get_roi(image,tollerance=5):
+    DEPTH_VIDEO_RESOLUTION=(480,640)
     min_x,min_y,w,h = cv2.boundingRect(image)
     max_x=min_x+w
     max_y=min_y+h
     min_x=max(0,min_x-tollerance)
     min_y=max(0,min_y-tollerance)
-    max_x=min(640,max_x+tollerance)
-    max_y=min(480,max_y+tollerance)
+    max_x=min(DEPTH_VIDEO_RESOLUTION[1],max_x+tollerance)
+    max_y=min(DEPTH_VIDEO_RESOLUTION[0],max_y+tollerance)
     start=(min_x,min_y)
     end=(max_x,max_y)
     result = image[start[1]:end[1], start[0]:end[0]]
-    
-    percentage=max([(0,result.shape[0]/480),(1,result.shape[1]/640)],key=lambda x:x[1])
+    percentage=max([(i,result.shape[i]/DEPTH_VIDEO_RESOLUTION[i]) for i in [0,1]],key=lambda x:x[1])
     if percentage[0]==0:
-        result=cv2.resize(result,(int(result.shape[1]/percentage[1]),480),cv2.INTER_AREA)
+        result=cv2.resize(result,(int(result.shape[1]/percentage[1]),DEPTH_VIDEO_RESOLUTION[0]),cv2.INTER_AREA)
     else:
-        result=cv2.resize(result,(640,int(result.shape[0]/percentage[1])),cv2.INTER_AREA)    
-
-    return result           
+        result=cv2.resize(result,(DEPTH_VIDEO_RESOLUTION[1],int(result.shape[0]/percentage[1])),cv2.INTER_AREA)    
+    return result                     
 
 def humoments(filename):
     path=os.path.join(dir_name,filename)
     # Read image
     im = cv2.imread(path,cv2.IMREAD_GRAYSCALE)
     #im = ~im
-
     # Threshold image
     _,im = cv2.threshold(im, 128, 255, cv2.THRESH_BINARY)
     im=get_roi(im)
-
-
     element = cv2.getStructuringElement(cv2.MORPH_CROSS,(7,7))
     gradient = cv2.morphologyEx(im, cv2.MORPH_GRADIENT, element)
-
     # Calculate Moments
     moment = cv2.moments(gradient)
-
     # Calculate Hu Moments
     huMoments = cv2.HuMoments(moment)
-
     return im,huMoments
 
 def main():
@@ -94,11 +87,17 @@ def main():
         print("\n")    
         shape=filename.split('-')[0]
         if shape in humoments_list.keys():   
-            humoments_list[shape].append(curr_humoments_log[:3])
+            humoments_list[shape].append(curr_humoments_log)
         else:
-            humoments_list[shape]=[curr_humoments_log[:3]]        
-
-    hulls=[(ConvexHull(pts),shape_label) for shape_label,pts in humoments_list.items()]
+            humoments_list[shape]=[curr_humoments_log]        
+    hulls=[]
+    for shape_label,pts in humoments_list.items():
+        hulls.append((ConvexHull([p[:3] for p in pts]),shape_label))
+        if save_knowledge:
+            path_file=os.path.join(dir_name,"knowledge",shape_label+".txt")
+            with open(path_file,"w")as f:
+                for p in pts:
+                    f.write(str(p.tolist())+"\n")
 
     fig = plt.figure(figsize=(10,10))
     ax = fig.add_subplot(1,1,1, projection="3d")
