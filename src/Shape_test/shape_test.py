@@ -102,7 +102,7 @@ def main():
 
     fig = plt.figure(figsize=(10,10))
     ax = fig.add_subplot(1,1,1, projection="3d")
-    colors=[(1, 0, 0),(0, 0, 0),(0, 1, 0),(0, 0, 1),(0, 1, 1),(1, 0, 1),(0.5, 0, 0.5),(0.5, 0.5, 0)]
+    colors=[(1, 0, 0),(0, 0, 0),(0, 1, 0),(0, 0, 1),(0, 1, 1),(1, 0, 1),(0.5, 0, 0.5),(0.5, 0.5, 0),(0, 0.5, 0.5)]
 
     ax.set_title('Shape')
     #p=np.array([1.52,5.0,9.0])
@@ -113,8 +113,8 @@ def main():
         #print(shape_label,distance) 
         for s,plane in zip(hull.simplices,hull.equations):
             s = np.append(s, s[0])  # Here we cycle back to the first coordinate
-            ax.plot(hull.points.T[0], hull.points.T[1], hull.points.T[2], "o", color=colors[i])
-            ax.plot(hull.points[s, 0], hull.points[s, 1], hull.points[s, 2],"-", color=colors[i])
+            ax.plot(hull.points.T[0], hull.points.T[1], hull.points.T[2], "o", color=colors[i%len(colors)])
+            ax.plot(hull.points[s, 0], hull.points[s, 1], hull.points[s, 2],"-", color=colors[i%len(colors)])
             ax.text(hull.points[0][0],hull.points[0][1],hull.points[0][2], shape_label, size=10, zorder=1, color='k')
         #ax.annotate(str(i), (hull.points[0]))
 
