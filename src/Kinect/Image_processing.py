@@ -36,14 +36,16 @@ class Image_processing:
         im_out = cv2.warpPerspective(image, h, (shape[1],shape[0]))
         return im_out
 
-    def get_mask(self,depth,slices_selected=2,slices=3):
-        coefficient=slices/slices_selected
+    def get_mask(self,depth,start=1,slices_selected=1,slices=3):
         minimum=np.min(depth)
         d=depth.copy()
         maximum=np.max(d)
-        threshold=((maximum-minimum)/coefficient)+minimum
-        d[depth > threshold] = 0
-        d[depth <= threshold] = 255
+        step=(maximum-minimum)/slices
+        threshold_1=(step*(start-1))+minimum
+        threshold_2=threshold_1+(step*slices_selected)
+        d[depth < threshold_1] = 0
+        d[depth >= threshold_1] = 255
+        d[depth > threshold_2] = 0
         return d
 
     def scale(self,x,maximum,minimum):
@@ -151,9 +153,8 @@ def main(mod):
         depth = np.load(depth_file) # load
         color = np.load(color_file) # load
 
-        image,roi,image_roi,image_segmented=ip.process((color,depth))
-        color,depth=image
-        merged=ip.merge(color,depth)
+        color=ip.homography(color,depth)
+        merged,mask=ip.segmentation(color,depth)
         globals()["color"]=color
         globals()["depth"]=depth
         globals()["merged"]=merged
@@ -175,8 +176,8 @@ def main(mod):
         while(1):
             depth=get_depth()
             color=get_video()
-            image,roi,image_roi,image_segmented=ip.process((color,depth))
-            merged=ip.merge(*image)
+            color=ip.homography(color,depth)
+            merged,mask=ip.segmentation(color,depth)
             globals()["color"]=color
             globals()["depth"]=depth
             globals()["merged"]=merged
