@@ -36,7 +36,7 @@ class Image_processing:
         im_out = cv2.warpPerspective(image, h, (shape[1],shape[0]))
         return im_out
 
-    def get_mask(self,depth,start=1,slices_selected=1,slices=3):
+    def get_mask(self,depth,start=2,slices_selected=1,slices=3):
         minimum=np.min(depth)
         d=depth.copy()
         maximum=np.max(d)
