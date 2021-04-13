@@ -69,7 +69,7 @@ def get_contours(grey):
     return grey, roi  
 
 
-def get_mask(depth,start=1,slices_selected=4,slices=5):
+def select_slices(depth,start=1,slices_selected=4,slices=5):
     minimum=np.min(depth[depth>0])
     depth_masked=depth.copy()
     depth_masked[depth==255]=0
@@ -115,17 +115,7 @@ def removing_bottom_floor(image):
 def get_neighbours(point, max_dimensions):
     l=[(-1, -1), (0, -1), (1, -1), (1, 0), (1, 1), (0, 1), (-1, 1), (-1, 0)]
     return {(point[0]+x,point[1]+y) for x,y in l if 0<=point[0]+x<max_dimensions[0] and 0<=point[1]+y<max_dimensions[1]}            
-
-def removing_floor_cython(image, _output, border_size=10, point=None, tolerance=15):
-    import pyximport
-    pyximport.install(setup_args={'include_dirs': np.get_include()})
-    from region_growing_cython import grow_region_cython
-
-    if not point:
-        point = get_point(image,border_size)
-
-    region_grow_cython = grow_region_cython(image, point, tolerance)
-    cv2.imshow("Region Grow Cython", region_grow_cython)    
+   
     
 def removing_floor_region_growing(image, output, border_size=10, point=None, tolerance=25):
     if not point:
@@ -143,7 +133,7 @@ def removing_floor_region_growing(image, output, border_size=10, point=None, tol
         visited.add(p)   
     return result
 
-def removing_floor_connected_components(original, output, border_size=10, point=None, tolerance=25):
+def removing_floor_connected_components(original, output, border_size=10, point=None, tolerance=8):
     if not point:
         point = get_point(original,border_size)
     image=original.copy()
@@ -157,15 +147,13 @@ def removing_floor_connected_components(original, output, border_size=10, point=
     result[labels==label]=0
     return result
 
-
-
 def live_mode():
     while True:
         # Original depth
         dep_original=get_depth()
  
         # Remove background
-        depth_no_background=get_mask(dep_original)
+        depth_no_background=select_slices(dep_original)
 
         # Filtering depth
         depth_no_background_median = cv2.medianBlur(depth_no_background, 5)
@@ -214,7 +202,7 @@ def batch_mode():
 
         
         # Remove background by mask
-        depth_masked=get_mask(dep_original)       
+        depth_masked=select_slices(dep_original)       
 
         # Filtering depth
         d_median = cv2.medianBlur(depth_masked, 5)
@@ -241,9 +229,8 @@ def batch_mode():
 
         # Save interediet file
         d_first_attempt = d_median_cropped.copy()
-        d_final2 = get_mask(d_first_attempt, slices_selected=15, slices=16)
+        d_final2 = select_slices(d_first_attempt, slices_selected=15, slices=16)
 
-        #cv2.imwrite(depth_file+"_starting.png", dep_original)
 
         depth_sobel = cv2.Sobel(dep_original,cv2.CV_64F,0,1,ksize=5)
         abs_sobel64f = np.absolute(depth_sobel)
@@ -282,26 +269,15 @@ def batch_mode():
         d_median_cropped, rois = get_contours(d_median_cropped)
         for i, roi in enumerate(rois):
             ret2,th2 = cv2.threshold(roi,0,255,cv2.THRESH_BINARY+cv2.THRESH_OTSU)
-            #d_adpt_thres = cv2.adaptiveThreshold(roi,255,cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY,11,2)
-            #cv2.imwrite(depth_file+str(i)+"_roi.png", th2)
+
 
         # Saving Files
         cv2.imwrite(depth_file+"_starting.png", dep_original)
         cv2.imwrite(depth_file+"_without_background.png", depth_masked)
         cv2.imwrite(depth_file+"_final.png", d_first_attempt)
-        cv2.imwrite(depth_file+"_final_2nd_get_mask.png", d_final2)
+        cv2.imwrite(depth_file+"_final_2nd_select_slices.png", d_final2)
         cv2.imwrite(depth_file+"_floor_removal_by_column.png", d_median_cropped)
-        #cv2.imwrite(depth_file+"_adpt_thres.png", d_adpt_thres)
-        #np.save(depth_file+".npy", depth_masked) # save
 
-        '''
-        cv2.imwrite(depth_file+"_edge.png", d_edge)
-        cv2.imwrite(depth_file+"_edge2.png", d_edge_2)
-        cv2.imwrite(depth_file+"_edge3.png", d_edge_3)
-        cv2.imwrite(rgb_file+".png", v)
-        np.save(rgb_file+".npy", v) # save
-        cv2.imwrite(rgb_file+".png", v)
-        cv2.imwrite(rgb_file+"_edge.png", v_edge)
-        '''
+
 if __name__=="__main__":
     live_mode()         

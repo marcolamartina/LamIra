@@ -21,9 +21,9 @@ accept_color =  {
                 "BLINK_RED_YELLOW":5
                 }
 accept_positions =  {
-                    "DOWN":-30,
+                    "DOWN":-27,
                     "CENTER":0,
-                    "UP":30
+                    "UP":27
                     }
 
 
@@ -107,11 +107,18 @@ class Kinect:
     def get_image_roi(self):
         i = array_to_image(self.image,self.i_shape)
         d = array_to_image(self.depth,self.d_shape)
-        start=(self.roi[0],self.roi[1])
-        end=(self.roi[2],self.roi[3])
-        i_roi = i[start[1]:end[1], start[0]:end[0]]
-        d_roi = d[start[1]:end[1], start[0]:end[0]]
-        return i_roi,d_roi
+        m = array_to_image(self.merged,self.m_shape)
+        result=[]
+        for k in range(0,len(self.roi),4):
+            if self.roi[k]==-1:
+                break
+            start=(self.roi[k],self.roi[k+1])
+            end=(self.roi[k+2],self.roi[k+3])
+            i_roi = i[start[1]:end[1], start[0]:end[0]]
+            d_roi = d[start[1]:end[1], start[0]:end[0]]
+            m_roi = m[start[1]:end[1], start[0]:end[0]]
+            result.append((i_roi,d_roi,m_roi))
+        return result
 
 
     
@@ -132,7 +139,7 @@ class Kinect_video_player:
 
         self.ctx, self.dev= self.__init_kinect__()        
         self.set_led('GREEN')
-        self.set_tilt_degs('DOWN')
+        self.set_tilt_degs(-22)
         freenect.close_device(self.dev)
         freenect.shutdown(self.ctx)
 
@@ -166,8 +173,7 @@ class Kinect_video_player:
                     d[...]=depth
                     i[...]=image
                     m[...]=merged
-                    roi_start,roi_end=self.get_roi(mask)
-                    merged = cv2.rectangle(merged, roi_start, roi_end, (0, 255, 255), 2)
+                    merged=self.get_roi(mask,merged)
                     if self.show_depth:
                         cv2.imshow('Depth', depth)
                     if self.show_video:   
@@ -182,23 +188,32 @@ class Kinect_video_player:
                     self.__del__() 
                     os._exit(1)   
 
-
-    def get_roi(self,image,tollerance=5):
-        min_x,min_y,w,h = cv2.boundingRect(image)
-        max_x=min_x+w
-        max_y=min_y+h
-        min_x=max(0,min_x-tollerance)
-        min_y=max(0,min_y-tollerance)
-        max_x=min(COLOR_VIDEO_RESOLUTION[1],max_x+tollerance)
-        max_y=min(COLOR_VIDEO_RESOLUTION[0],max_y+tollerance)
-        start_point=(min_x,min_y)
-        end_point=(max_x,max_y)
-        self.set_roi([min_x,min_y,max_x,max_y])
-        return start_point,end_point                     
+    def get_roi(self,mask,output,tollerance=10):
+        contours, hierarchy = cv2.findContours(mask,cv2.RETR_EXTERNAL,cv2.CHAIN_APPROX_NONE)[-2:]
+        roi=[]
+        for cnt in contours:
+            min_x,min_y,w,h = cv2.boundingRect(cnt)
+            max_x=min_x+w
+            max_y=min_y+h
+            min_x=max(0,min_x-tollerance)
+            min_y=max(0,min_y-tollerance)
+            max_x=min(COLOR_VIDEO_RESOLUTION[1],max_x+tollerance)
+            max_y=min(COLOR_VIDEO_RESOLUTION[0],max_y+tollerance)
+            if max_x - min_x >50 or max_y-min_y>50:
+                start_point=(min_x,min_y)
+                end_point=(max_x,max_y)
+                roi+=[min_x,min_y,max_x,max_y]
+                cv2.rectangle(output, start_point, end_point, (0, 255, 255), 2)
+        self.set_roi(roi)
+        return output
+                        
 
     def set_roi(self,points):
-        for i in range(4):
+        limit=min(len(self.roi),len(points))
+        for i in range(limit):
             self.roi[i]=points[i]
+        for i in range(limit,len(self.roi)):
+            self.roi[i]=-1     
         
 
     def get_depth_image(self):

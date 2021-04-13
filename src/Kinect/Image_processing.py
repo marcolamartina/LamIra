@@ -36,17 +36,68 @@ class Image_processing:
         im_out = cv2.warpPerspective(image, h, (shape[1],shape[0]))
         return im_out
 
-    def get_mask(self,depth,start=2,slices_selected=1,slices=3):
-        minimum=np.min(depth)
-        d=depth.copy()
-        maximum=np.max(d)
+    def select_slices(self,depth,start=1,slices_selected=4,slices=5):
+        minimum=np.min(depth[depth>0])
+        result=depth.copy()
+        result[depth==255]=0
+        maximum=np.max(result)
         step=(maximum-minimum)/slices
         threshold_1=(step*(start-1))+minimum
         threshold_2=threshold_1+(step*slices_selected)
-        d[depth < threshold_1] = 0
-        d[depth >= threshold_1] = 255
-        d[depth > threshold_2] = 0
-        return d
+        result[depth < threshold_1] = 0
+        #result[depth >= threshold_1] = 255
+        result[depth > threshold_2] = 0
+        return result
+
+    def get_point(self,image,border_size=10,tolerance=10):
+        return (image.shape[0]-border_size-tolerance,image.shape[1]-border_size-tolerance)           
+   
+    def padding(self, image, border_size=10):
+        return cv2.copyMakeBorder(image, border_size,border_size,border_size,border_size,cv2.BORDER_CONSTANT,value=0)
+
+    def crop(self, image, border_size=10):
+        return image[border_size:image.shape[0]-border_size, border_size:image.shape[1]-border_size]
+
+    def remove_floor(self, original, output, border_size=10, point=None, tolerance=10):
+        if not point:
+            point = self.get_point(original,border_size)
+        image=original.copy()
+        result=output.copy()    
+        value_ref=int(image[point[0],point[1]] )    
+        image[image<value_ref-tolerance]=0
+        image[image>value_ref+tolerance]=0
+        image[image>0]=1
+        _, labels = cv2.connectedComponents(image)
+        label=labels[point[0],point[1]]
+        result[labels==label]=0
+        return result
+
+    def get_mask(self,depth):
+        # Remove background
+        depth_no_background=self.select_slices(depth)
+
+        # Filtering depth
+        depth_no_background_median = cv2.medianBlur(depth_no_background, 5)
+
+        # Cropping image
+        border_size=10
+        depth_no_background_median_cropped = self.crop(depth_no_background_median,border_size=border_size)
+        # Padding image for restore dimensions        
+        depth_no_background_median_cropped = self.padding(depth_no_background_median_cropped,border_size=border_size)
+
+        # Sobel
+        depth_sobel = cv2.Sobel(depth,cv2.CV_64F,0,1,ksize=5)
+        abs_sobel64f = np.absolute(depth_sobel)
+        depth_sobel = np.uint8(abs_sobel64f)
+
+        # Blurring Sobel image
+        kernel_sobel_size=9
+        depth_sobel_blurred = cv2.blur(depth_sobel, (kernel_sobel_size,kernel_sobel_size))
+
+        depth_no_floor=self.remove_floor(depth_sobel_blurred,depth_no_background_median_cropped,border_size)
+        depth_no_floor_blurred=cv2.medianBlur(depth_no_floor, 15)
+        depth_no_floor_blurred[depth_no_floor_blurred>0]=255
+        return depth_no_floor_blurred
 
     def scale(self,x,maximum,minimum):
         if x==0:

@@ -68,7 +68,7 @@ def main():
     image = Array('B', i_arr)
     depth = Array('B', d_arr)
     merged = Array('B', m_arr)
-    roi = Array('i',[0,0,0,0])
+    roi = Array('i',[-1 for _ in range(4*10)])
 
     newstdin = sys.stdin.fileno()
 
