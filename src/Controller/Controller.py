@@ -36,9 +36,6 @@ class Controller:
         self.say("welcome")
 
     def query_mode(self):
-        import cv2
-        for i,x in enumerate(self.kinect.get_image_roi()):
-            cv2.imwrite("/home/davide/Desktop/test_"+str(i)+".png",x[2])
         while True:
             if self.close.value==1:
                 self.say("quit")
