@@ -69,12 +69,14 @@ def distance_point_face(point,face):
 
 
 pts=[[[random.randint(0,100),random.randint(-128,128),random.randint(-128,128)] for _ in range(4)]]
-pts=[[[random.randint(0,100) for _ in range(3)] for _ in range(15)]]
-
+pts=[[[random.randint(0,100) for _ in range(3)] for _ in range(10)]]
+rng = np.random.RandomState(0)
+pts = rng.random_sample((40, 30))
 #pts=[[[0,0,0.00001],[0.00001,0,0.00001],[0.00001,0,0.00001],[0,0.00001,0],[0.00001,0,0],[0.00001,0,0.00001],[0.00001,0,0.00001],[0.00001,0,0.00001]]]
-pts=[np.array(i) for i in pts]
-hulls=[ConvexHull(i) for i in pts]
-
+#pts=[np.array(i) for i in pts]
+hulls=ConvexHull(pts)
+print(hulls)
+exit(0)
 fig = plt.figure(figsize=(15,5))
 ax1 = fig.add_subplot(1,3,1, projection="3d")
 ax2 = fig.add_subplot(1,3,2, projection="3d")
