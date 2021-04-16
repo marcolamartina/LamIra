@@ -102,12 +102,14 @@ def calculate_symmetry_2d(mask):
             mask=mask.T
         half=int(mask.shape[1]/2)
         first_half = mask[:, 0:half]
-        second_half = mask[:, half:mask.shape[1]]
+        second_half = mask[:, half+(mask.shape[0] % 2):]
+        cv2.imshow("first",first_half)
+        cv2.imshow("second",second_half)
+        cv2.waitKey(0)
         second_half = np.flip(second_half, axis=0)
-        h_sym = np.sum(first_half == second_half)
-        symmetry=0
+        symmetry = np.sum(first_half == second_half).all()
         symmetries.append(symmetry)        
-    return max(symmetries)/mask.size
+    return max(symmetries)/cv2.countNonZero(mask)
 
 def euclidean_distance(a,b):
     return numpy.linalg.norm(a-b)
