@@ -97,18 +97,17 @@ def calculate_symmetry(mask, type="h"):
 
 def calculate_symmetry_2d(mask):
     symmetries=[]
-    for i in [0,1]:
+    for i in range(2):
         if i:
             mask=mask.T
         half=int(mask.shape[1]/2)
         first_half = mask[:, 0:half]
         second_half = mask[:, half+(mask.shape[1] % 2):]
-        second_half = np.flip(second_half, axis=0)
+        second_half = np.flip(second_half, axis=1)
         symmetry = np.sum(first_half == second_half)
-        symmetries.append(symmetry)
+        symmetries.append(symmetry/first_half.size)
         
-    print(symmetries,cv2.countNonZero(mask))               
-    return float(max(symmetries)/(cv2.countNonZero(mask)))
+    return float(max(symmetries))
 
 def euclidean_distance(a,b):
     return numpy.linalg.norm(a-b)
