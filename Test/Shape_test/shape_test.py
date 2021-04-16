@@ -94,10 +94,20 @@ def calculate_symmetry(mask, type="h"):
     print("{} : {}".format(type, counter))
     return counter
 
+
 def calculate_symmetry_2d(mask):
-    pixels = mask.shape[0] * mask.shape[1]
-    best_symmetry = max(calculate_symmetry(mask), calculate_symmetry(mask, "v"))                
-    return best_symmetry/pixels
+    symmetries=[]
+    for i in [0,1]:
+        if i:
+            mask=mask.T
+        half=int(mask.shape[1]/2)
+        first_half = mask[:, 0:half]
+        second_half = mask[:, half:mask.shape[1]]
+        second_half = np.flip(second_half, axis=0)
+        h_sym = np.sum(first_half == second_half)
+        symmetry=0
+        symmetries.append(symmetry)        
+    return max(symmetries)/mask.size
 
 def euclidean_distance(a,b):
     return numpy.linalg.norm(a-b)
