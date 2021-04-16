@@ -32,17 +32,108 @@ def calculate_descriptor(mask, rgb, depth):
     return descriptors_2d+descriptors_3d
 
 def calculate_descriptors_3d(mask,rgb,depth):
+    compactess_3d=calculate_compactess_3d(mask,rgb,depth)
+    symmetry_3d=calculate_symmetry_3d(mask,rgb,depth)
+    global_convexity_3d=calculate_global_convexity_3d(mask,rgb,depth)
+    local_convexity_3d=calculate_local_convexity_3d(mask,rgb,depth)
+    smoothness_3d=calculate_smoothness_3d(mask,rgb,depth)
+    return [compactess_3d,symmetry_3d,global_convexity_3d,local_convexity_3d,smoothness_3d]
+
+def get_roi(image):
+    min_x,min_y,w,h = cv2.boundingRect(image)
+    max_x=min_x+w
+    max_y=min_y+h
+    return image[min_y:max_y,min_x:max_x]
+
+def calculate_descriptors_2d(mask,rgb):
+    mask_roi=get_roi(mask)
+    compactess_2d=calculate_compactess_2d(mask_roi)
+    symmetry_2d=calculate_symmetry_2d(mask_roi)
+    global_convexity_2d=calculate_global_convexity_2d(mask)
+    uniqueness_2d=calculate_uniqueness_2d(mask,rgb)
+    smoothness_2d=calculate_smoothness_2d(mask,rgb)
+    return [compactess_2d,symmetry_2d,global_convexity_2d,uniqueness_2d,smoothness_2d]
+
+def calculate_compactess_2d(mask):
+    pixels_on = cv2.countNonZero(mask)
+    pixels = mask.shape[0] * mask.shape[1]
+    return pixels_on/pixels    
+
+def calculate_symmetry(mask, type="h"):
+    counter = 0
+    if type == "h":
+        first_shape =  mask.shape[0]
+        second_shape = mask.shape[1]
+        for i in range(first_shape):
+            for j, val in enumerate(mask[i, 0:int((second_shape-1)/2)]):
+                if val == mask[i, second_shape-1-j]:
+                    counter+=1    
+        half=int((mask.shape[1]-1)/2)
+        first_half = mask[:, 0:half]
+        second_half = mask[:, half:mask.shape[1]]
+        second_half = np.flip(second_half, axis=0)
+        h_sym = np.sum(first_half == second_half)
+        
+        print("h for:{} numpy{}".format(counter, h_sym))
+    else:
+        first_shape =  mask.shape[1]
+        second_shape = mask.shape[0]
+        for i in range(first_shape):
+            for j, val in enumerate(mask[0:int((second_shape-1)/2), i]):
+                if val == mask[second_shape-1-j, i]:
+                    counter+=1 
+        
+        first_half = mask[0:int((mask.shape[0]-1)/2),:]
+        second_half = mask[int((mask.shape[0]-1)/2):mask.shape[0], :]
+        second_half = np.flip(second_half, axis=1)
+        v_sym = np.sum(first_half == second_half)
+        
+        print("v for:{} numpy{}".format(counter, v_sym))
+
+        
+    print("{} : {}".format(type, counter))
+    return counter
+
+def calculate_symmetry_2d(mask):
+    pixels = mask.shape[0] * mask.shape[1]
+    best_symmetry = max(calculate_symmetry(mask), calculate_symmetry(mask, "v"))                
+    return best_symmetry/pixels
+
+def euclidean_distance(a,b):
+    return numpy.linalg.norm(a-b)
+
+def calculate_global_convexity_2d(mask):
+    contours, _ = cv2.findContours(mask, cv2.RETR_EXTERNAL,cv2.CHAIN_APPROX_NONE)
+    hull = cv2.convexHull(contours[0])
+    m=mask.copy()
+    cv2.drawContours(m, [hull], -1, 150, 1)
+    contours_pos=np.argwhere(m==150)
+    points=np.argwhere(m==255)
+    result=np.average(np.min(np.linalg.norm(contours_pos - points[:,None], axis=-1),axis=1))
+    return float(result)
+    
+
+def calculate_uniqueness_2d(mask,rgb):
     pass
 
-def calculate_descriptors_2d(mask,depth):
-    compactess_2d=calculate_compactess_2d(mask,depth)
-    symmetry_2d=calculate_symmetry_2d(mask,depth)
-    global_convexity_2d=calculate_global_convexity_2d(mask,depth)
-    uniqueness_2d=calculate_uniqueness_2d(mask,depth)
-    compactess_2d=calculate_compactess_2d(mask,depth)
+def calculate_smoothness_2d(mask,rgb):
+    pass
 
-def calculate_compactess_2d(mask,depth):
-    
+
+def calculate_compactess_3d(mask,rgb,depth):
+    pass
+
+def calculate_symmetry_3d(mask,rgb,depth):
+    pass
+
+def calculate_global_convexity_3d(mask,rgb,depth):
+    pass
+
+def calculate_local_convexity_3d(mask,rgb,depth):
+    pass
+
+def calculate_smoothness_3d(mask,rgb,depth):
+    pass
 
 def main():
     files = os.listdir( image_path )
@@ -63,8 +154,9 @@ def main():
     for name,mask,rgb,depth in zip(names,crop_masks,rgbs,depths):
         descriptors=calculate_descriptor(mask,rgb,depth)
         print("Descriptors {}: ".format(name),end='')
-        for d in descriptors:     
-            print("{:.4f}".format(d),end=' ')
+        for d in descriptors:
+            if type(d)==float:     
+                print("{:.4f}".format(d),end=' ')
         print("\n")    
         if name in descriptors_dict.keys():   
             descriptors_dict[name].append(descriptors)
