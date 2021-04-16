@@ -32,9 +32,16 @@ def calculate_descriptor(mask, rgb, depth):
     return descriptors_2d+descriptors_3d
 
 def calculate_descriptors_3d(mask,rgb,depth):
-
+    pass
 
 def calculate_descriptors_2d(mask,depth):
+    compactess_2d=calculate_compactess_2d(mask,depth)
+    symmetry_2d=calculate_symmetry_2d(mask,depth)
+    global_convexity_2d=calculate_global_convexity_2d(mask,depth)
+    uniqueness_2d=calculate_uniqueness_2d(mask,depth)
+    compactess_2d=calculate_compactess_2d(mask,depth)
+
+def calculate_compactess_2d(mask,depth):
     
 
 def main():
