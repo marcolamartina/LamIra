@@ -59,40 +59,6 @@ def calculate_compactess_2d(mask):
     pixels = mask.shape[0] * mask.shape[1]
     return pixels_on/pixels    
 
-def calculate_symmetry(mask, type="h"):
-    counter = 0
-    if type == "h":
-        first_shape =  mask.shape[0]
-        second_shape = mask.shape[1]
-        for i in range(first_shape):
-            for j, val in enumerate(mask[i, 0:int((second_shape-1)/2)]):
-                if val == mask[i, second_shape-1-j]:
-                    counter+=1    
-        half=int((mask.shape[1]-1)/2)
-        first_half = mask[:, 0:half]
-        second_half = mask[:, half:mask.shape[1]]
-        second_half = np.flip(second_half, axis=0)
-        h_sym = np.sum(first_half == second_half)
-        
-        print("h for:{} numpy{}".format(counter, h_sym))
-    else:
-        first_shape =  mask.shape[1]
-        second_shape = mask.shape[0]
-        for i in range(first_shape):
-            for j, val in enumerate(mask[0:int((second_shape-1)/2), i]):
-                if val == mask[second_shape-1-j, i]:
-                    counter+=1 
-        
-        first_half = mask[0:int((mask.shape[0]-1)/2),:]
-        second_half = mask[int((mask.shape[0]-1)/2):mask.shape[0], :]
-        second_half = np.flip(second_half, axis=1)
-        v_sym = np.sum(first_half == second_half)
-        
-        print("v for:{} numpy{}".format(counter, v_sym))
-
-        
-    print("{} : {}".format(type, counter))
-    return counter
 
 
 def calculate_symmetry_2d(mask):
@@ -124,7 +90,12 @@ def calculate_global_convexity_2d(mask):
     
 
 def calculate_uniqueness_2d(mask,rgb):
-    pass
+    contours, _ = cv2.findContours(mask, cv2.RETR_EXTERNAL,cv2.CHAIN_APPROX_NONE)
+    m=cv2.cvtColor(mask, cv2.COLOR_GRAY2BGR)
+    cv2.drawContours(m, contours, -1, (0,255,255), 1)
+    print(contours[0])
+    cv2.imshow("pippo",m)
+    cv2.waitKey(0)
 
 def calculate_smoothness_2d(mask,rgb):
     pass
