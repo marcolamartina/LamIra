@@ -27,9 +27,15 @@ def apply_mask(mask,image):
     return i
 
 def calculate_descriptor(mask, rgb, depth):
-    rng = np.random.RandomState(0)
-    X = rng.random_sample(10)
-    return X
+    descriptors_2d=calculate_descriptors_2d(mask,depth)
+    descriptors_3d=calculate_descriptors_3d(mask,rgb,depth)
+    return descriptors_2d+descriptors_3d
+
+def calculate_descriptors_3d(mask,rgb,depth):
+
+
+def calculate_descriptors_2d(mask,depth):
+    
 
 def main():
     files = os.listdir( image_path )
