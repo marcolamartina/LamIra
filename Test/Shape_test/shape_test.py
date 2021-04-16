@@ -93,15 +93,23 @@ def calculate_uniqueness_2d(mask,rgb):
     contours, _ = cv2.findContours(mask, cv2.RETR_EXTERNAL,cv2.CHAIN_APPROX_NONE)
     m=cv2.cvtColor(mask, cv2.COLOR_GRAY2BGR)
     cv2.drawContours(m, contours, -1, (0,255,255), 1)
-    print(contours[0])
-    cv2.imshow("pippo",m)
-    cv2.waitKey(0)
+    t=3
+    contours=contours[0]
+    l=len(contours)
+    vectors=[contours[(i+2)%l]-contours[(i-2)%l] for i in range(0,l,t)]
+    l=len(vectors)
+    for i in range(l):
+        angle=get_angle(vector[i],vector[(i+1)%l])
+
+
 
 def calculate_smoothness_2d(mask,rgb):
     pass
 
 
 def calculate_compactess_3d(mask,rgb,depth):
+    #AQUI
+    
     pass
 
 def calculate_symmetry_3d(mask,rgb,depth):
