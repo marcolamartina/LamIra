@@ -9,6 +9,8 @@ from scipy.spatial import ConvexHull
 import random
 import math
 import itertools
+from sklearn.mixture import GaussianMixture
+
 
 dir_name=os.path.dirname(__file__)
 image_path = os.path.join(dir_name, "object")
@@ -50,8 +52,8 @@ def calculate_descriptors_2d(mask,rgb):
     compactess_2d=calculate_compactess_2d(mask_roi)
     symmetry_2d=calculate_symmetry_2d(mask_roi)
     global_convexity_2d=calculate_global_convexity_2d(mask)
-    uniqueness_2d=calculate_uniqueness_2d(mask,rgb)
-    smoothness_2d=calculate_smoothness_2d(mask,rgb)
+    histogram, uniqueness_2d=calculate_uniqueness_2d(mask,rgb)
+    smoothness_2d=calculate_smoothness_2d(mask,rgb,histogram)
     return [compactess_2d,symmetry_2d,global_convexity_2d,uniqueness_2d,smoothness_2d]
 
 def calculate_compactess_2d(mask):
@@ -76,7 +78,7 @@ def calculate_symmetry_2d(mask):
     return float(max(symmetries))
 
 def euclidean_distance(a,b):
-    return numpy.linalg.norm(a-b)
+    return np.linalg.norm(a-b)
 
 def calculate_global_convexity_2d(mask):
     contours, _ = cv2.findContours(mask, cv2.RETR_EXTERNAL,cv2.CHAIN_APPROX_NONE)
@@ -87,9 +89,20 @@ def calculate_global_convexity_2d(mask):
     points=np.argwhere(m==255)
     result=np.average(np.min(np.linalg.norm(contours_pos - points[:,None], axis=-1),axis=1))
     return float(result)
-    
 
-def calculate_uniqueness_2d(mask,rgb):
+def get_angle(v1,v2):
+    angles=np.array([[135,120,90,60,45],
+                    [150,135,90,45,30],
+                    [180,180,0,0,0],
+                    [210,225,270,315,330],
+                    [225,240,270,300,315]])
+    return (angles[v1[0],v1[1]]-angles[v2[0],v2[1]])%180                    
+
+def entropy(hist):
+    return -sum([i*math.log(i) for i in hist])
+
+def calculate_uniqueness_2d(mask,rgb,show_hist=False):
+    hist={}
     contours, _ = cv2.findContours(mask, cv2.RETR_EXTERNAL,cv2.CHAIN_APPROX_NONE)
     m=cv2.cvtColor(mask, cv2.COLOR_GRAY2BGR)
     cv2.drawContours(m, contours, -1, (0,255,255), 1)
@@ -99,12 +112,32 @@ def calculate_uniqueness_2d(mask,rgb):
     vectors=[contours[(i+2)%l]-contours[(i-2)%l] for i in range(0,l,t)]
     l=len(vectors)
     for i in range(l):
-        angle=get_angle(vector[i],vector[(i+1)%l])
+        angle=get_angle(vectors[i][0],vectors[(i+1)%l][0])
+        if angle in hist.keys():
+            hist[angle]+=1
+        else:
+            hist[angle]=1
+    if show_hist:
+        from collections import Counter
+        num = Counter(hist)
+        x = []
+        y = []
+        for k in sorted(hist.keys()):
+            x.append(hist[k])
+            y.append(k)
 
+        x_coordinates = np.arange(len(num.keys()))
+        plt.bar(x_coordinates,x)
+        plt.xticks(x_coordinates,y)
+        plt.show()          
+    h=[i/l for i in hist.values()]  
+    h2=[(k,v) for k,v in hist.items()]        
+    return h2,entropy(h)
 
-
-def calculate_smoothness_2d(mask,rgb):
-    pass
+def calculate_smoothness_2d(mask,rgb,histogram):
+    X = np.array(histogram)
+    gm = GaussianMixture(n_components=2, random_state=0).fit(X)
+    return float(np.max(gm.means_[:,0]))
 
 
 def calculate_compactess_3d(mask,rgb,depth):
