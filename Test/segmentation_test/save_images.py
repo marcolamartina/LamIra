@@ -269,7 +269,7 @@ def batch_mode():
         d_median_cropped, rois = get_contours(d_median_cropped)
         for i, roi in enumerate(rois):
             ret2,th2 = cv2.threshold(roi,0,255,cv2.THRESH_BINARY+cv2.THRESH_OTSU)
-
+            cv2.imwrite(depth_file+"_roi_" + str(i) + ".png", th2)
 
         # Saving Files
         cv2.imwrite(depth_file+"_starting.png", dep_original)
