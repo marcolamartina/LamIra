@@ -117,7 +117,9 @@ class Kinect:
             i_roi = i[start[1]:end[1], start[0]:end[0]]
             d_roi = d[start[1]:end[1], start[0]:end[0]]
             m_roi = m[start[1]:end[1], start[0]:end[0]]
-            result.append((i_roi,d_roi,m_roi))
+            _,mask=cv2.threshold(cv2.cvtColor(m_roi, cv2.COLOR_BGR2GRAY),1,255,cv2.THRESH_BINARY)
+            d_m_roi = d_roi*mask
+            result.append((i_roi,d_roi,m_roi,d_m_roi))
         return result
 
 

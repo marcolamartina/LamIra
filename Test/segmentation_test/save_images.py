@@ -175,6 +175,7 @@ def live_mode():
 
         depth_without_floor=removing_floor_connected_components(depth_sobel_blurred,depth_no_background_median_cropped,border_size)
         depth_without_floor_blurred=cv2.medianBlur(depth_without_floor, 15)
+        #depth_without_floor_blurred[depth_without_floor_blurred>0]=255
         cv2.imshow('Depth Without Backgroud and Floor', depth_without_floor_blurred)
         cv2.imshow('Depth Sobel', depth_sobel_blurred)
 
@@ -182,102 +183,107 @@ def live_mode():
             break
 
 def batch_mode():
-    from_kinect=False
+    from_kinect=True
+    video=True
+    path=os.path.dirname(__file__)
+    path='/home/davide/LamIra/Test/segmentation_test'
+
+    # Defining starting element
+    element = cv2.getStructuringElement(cv2.MORPH_CROSS,(3,3))
+    depth_file=path+"/test/depth_"+str(i)
+
+    # Take depth image
+    if from_kinect:
+        dep_original=get_depth()
+        v=get_video()
+    else:
+        dep_original=cv2.imread(depth_file+"_starting.png", 0)
+        v=None
+        video=False
+
     
-    for i in range(1):
-        # Defining starting element
-        path=os.path.dirname(__file__)
-        element = cv2.getStructuringElement(cv2.MORPH_CROSS,(3,3))
-        depth_file=path+"/test/depth_"+str(i)
+    # Remove background by mask
+    depth_masked=select_slices(dep_original)       
 
-        # Take depth image
-        if from_kinect:
-            cv2.namedWindow('Depth')
-            cv2.namedWindow('Video')
-            dep_original=get_depth()
-            v=get_video()
-        else:
-            dep_original=cv2.imread(depth_file+"_starting.png", 0)
-            v=None
+    # Filtering depth
+    d_median = cv2.medianBlur(depth_masked, 5)
 
-        
-        # Remove background by mask
-        depth_masked=select_slices(dep_original)       
+    border_size=10
+    # Cropping image
+    d_median_cropped = crop(d_median,border_size=border_size)
+    # Padding image for restore dimensions        
+    d_median_cropped = padding(d_median_cropped,border_size=border_size)
+    
+    
 
-        # Filtering depth
-        d_median = cv2.medianBlur(depth_masked, 5)
+    #d_edge = cv2.Canny(depth_masked,55,65,apertureSize = 5)
+    #d_edge_2 = cv2.morphologyEx(d_edge, cv2.MORPH_GRADIENT, element)
+    #d_edge_3 = cv2.medianBlur(d_edge_2, 5)
+    #d_median_cropped = crop_image(depth_masked, 50)
 
-        border_size=10
-        # Cropping image
-        d_median_cropped = crop(d_median,border_size=border_size)
-        # Padding image for restore dimensions        
-        d_median_cropped = padding(d_median_cropped,border_size=border_size)
-        
-        
-
-        #d_edge = cv2.Canny(depth_masked,55,65,apertureSize = 5)
-        #d_edge_2 = cv2.morphologyEx(d_edge, cv2.MORPH_GRADIENT, element)
-        #d_edge_3 = cv2.medianBlur(d_edge_2, 5)
-        #d_median_cropped = crop_image(depth_masked, 50)
-
-        # Filtering Video
-        if v:
-            v_grey = cv2.cvtColor(v, cv2.COLOR_BGR2GRAY)
-            v_edge=cv2.Canny(v_grey,70,90, apertureSize = 3)
-            rgb_file=path+"/test/rgb_"+str(i)
+    # Filtering Video
+    if video:
+        v_grey = cv2.cvtColor(v, cv2.COLOR_BGR2GRAY)
+        v_edge=cv2.Canny(v_grey,70,90, apertureSize = 3)
+        rgb_file=path+"/test/rgb_"+str(i)
 
 
-        # Save interediet file
-        d_first_attempt = d_median_cropped.copy()
-        d_final2 = select_slices(d_first_attempt, slices_selected=15, slices=16)
+    # Save interediet file
+    d_first_attempt = d_median_cropped.copy()
+    d_final2 = select_slices(d_first_attempt, slices_selected=15, slices=16)
 
 
-        depth_sobel = cv2.Sobel(dep_original,cv2.CV_64F,0,1,ksize=5)
-        abs_sobel64f = np.absolute(depth_sobel)
-        depth_sobel = np.uint8(abs_sobel64f)
+    depth_sobel = cv2.Sobel(dep_original,cv2.CV_64F,0,1,ksize=5)
+    abs_sobel64f = np.absolute(depth_sobel)
+    depth_sobel = np.uint8(abs_sobel64f)
 
-        kernel_size=9
-        depth_test = cv2.blur(depth_sobel, (kernel_size,kernel_size))
-        cv2.imshow("sobel", depth_sobel)
-        cv2.imshow("pippo", depth_test)
+    kernel_size=9
+    depth_test = cv2.blur(depth_sobel, (kernel_size,kernel_size))
+    #cv2.imshow("sobel", depth_sobel)
+    #cv2.imshow("pippo", depth_test)
 
-        image_without_floor=removing_floor_region_growing(depth_test,d_median_cropped,border_size)
-        image_without_floor=cv2.medianBlur(image_without_floor, 15)  
-        cv2.imshow("not floor", image_without_floor)
-        cv2.waitKey(0)
+    image_without_floor=removing_floor_region_growing(depth_test,d_median_cropped,border_size)
+    image_without_floor=cv2.medianBlur(image_without_floor, 15)  
+    #cv2.imshow("not floor", image_without_floor)
+    d_median_cropped=image_without_floor
+    
+    # Clear columns with floor
+    for k in range(d_median_cropped.shape[1]-1,-1, -1):
+        column=d_median_cropped[:, k]
+        obj=False
+        for j,value in enumerate(column):
+            if j == len(column)-1:
+                break
+            succ = column[j+1]
+            if value > 0 and value < succ:
+                obj=True
+                break
+                
+        if not obj:
+            d_median_cropped[:, k]=0
+
+    d_median_cropped = cv2.medianBlur(d_median_cropped, 5)
+    #d_median_cropped = cv2.morphologyEx(d_median_cropped, cv2.MORPH_GRADIENT, element)
+
+    # Extracting ROI
+    d_median_cropped, rois = get_contours(d_median_cropped)
+    for l, roi in enumerate(rois):
+        ret2,th2 = cv2.threshold(roi,0,255,cv2.THRESH_BINARY+cv2.THRESH_OTSU)
+        cv2.imwrite(depth_file+"_roi_" + str(l) + "_"+str(i)+".png", th2)
+
+    # Saving Files
+    cv2.imwrite(rgb_file+".png", v)
+    cv2.imwrite(depth_file+".png", dep_original)
+    '''
+    cv2.imwrite(depth_file+"_without_background.png", depth_masked)
+    cv2.imwrite(depth_file+"_final.png", d_first_attempt)
+    cv2.imwrite(depth_file+"_final_2nd_select_slices.png", d_final2)
+    cv2.imwrite(depth_file+"_floor_removal_by_column.png", d_median_cropped)
+    '''
 
 
-        # Clear clomuns with floor
-        for i in range(d_median_cropped.shape[1]-1,-1, -1):
-            column=d_median_cropped[:, i]
-            obj=False
-            for j,value in enumerate(column):
-                if j == len(column)-1:
-                    break
-                succ = column[j+1]
-                if value > 0 and value < succ:
-                    obj=True
-                    break
-                    
-            if not obj:
-                d_median_cropped[:, i]=0
-
-        d_median_cropped = cv2.medianBlur(d_median_cropped, 5)
-        #d_median_cropped = cv2.morphologyEx(d_median_cropped, cv2.MORPH_GRADIENT, element)
-
-        # Extracting ROI
-        d_median_cropped, rois = get_contours(d_median_cropped)
-        for i, roi in enumerate(rois):
-            ret2,th2 = cv2.threshold(roi,0,255,cv2.THRESH_BINARY+cv2.THRESH_OTSU)
-            cv2.imwrite(depth_file+"_roi_" + str(i) + ".png", th2)
-
-        # Saving Files
-        cv2.imwrite(depth_file+"_starting.png", dep_original)
-        cv2.imwrite(depth_file+"_without_background.png", depth_masked)
-        cv2.imwrite(depth_file+"_final.png", d_first_attempt)
-        cv2.imwrite(depth_file+"_final_2nd_select_slices.png", d_final2)
-        cv2.imwrite(depth_file+"_floor_removal_by_column.png", d_median_cropped)
 
 
 if __name__=="__main__":
-    live_mode()         
+    live_mode()
+    batch_mode()    

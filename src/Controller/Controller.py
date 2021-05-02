@@ -59,6 +59,12 @@ class Controller:
             #image=self.kinect.get_image_example()
             image,depth=self.kinect.get_image()
             merged=self.kinect.get_merged()
+
+            import cv2
+            rois=self.kinect.get_image_roi()
+            for i,roi in enumerate(rois):
+                cv2.imwrite("/home/davide/LamIra/Test/segmentation_test/test/depth_"+str(i)+".png",roi[3])
+
             predictions=self.grounding.classify((image,depth,merged),best_intent)
             text=self.text_production.to_text_predictions(best_intent,predictions)
             self.say_text(text)    
@@ -87,6 +93,8 @@ class Controller:
             #image=self.kinect.get_image_example()
             image,depth=self.kinect.get_image()
             merged=self.kinect.get_merged()
+
+
             label_confirmed=False
             while not label_confirmed:
                 label=self.get_label_input(best_intent)
