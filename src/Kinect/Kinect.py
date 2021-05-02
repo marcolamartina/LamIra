@@ -282,7 +282,7 @@ class Kinect_video_player:
 
         if not dev:
             freenect.error_open_device()
-            os._exit(1)
+            self.close.value=1
         return ctx, dev
 
     def __del__(self):
