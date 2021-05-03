@@ -41,7 +41,7 @@ if [[ "$OSTYPE" == "darwin"* ]]; then
     pip install torch torchvision torchaudio
     curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh;
     source $HOME/.cargo/env
-if [[ "$OSTYPE" == "linux-gnu"* ]]; then
+elif [[ "$OSTYPE" == "linux-gnu"* ]]; then
     pip3 install torch==1.8.0+cpu torchvision==0.9.0+cpu torchaudio==0.8.0 -f https://download.pytorch.org/whl/torch_stable.html
 fi
 pip3 install transformers==3
@@ -52,7 +52,7 @@ if [[ "$OSTYPE" == "darwin"* ]]; then
     freenect-glview # for test
     # install CMake from https://cmake.org/download/
     
-if [[ "$OSTYPE" == "linux-gnu"* ]]; then
+elif [[ "$OSTYPE" == "linux-gnu"* ]]; then
     sudo apt-get install git cmake build-essential libusb-1.0-0-dev
     sudo apt-get install libfreenect-bin
 fi
@@ -74,6 +74,19 @@ if [[ "$OSTYPE" == "linux-gnu"* ]]; then
 fi
 sudo python3 setup.py install
 
+if [[ "$OSTYPE" == "linux-gnu"* ]]; then
+    sudo python3 setup.py install
+    sudo apt-get update -y
+    sudo apt-get install libpcl-dev -y
+    Download Repo from (https://github.com/Sirokujira/python-pcl.git)
+    sudo apt install gcc-10 gcc-10-base gcc-10-doc g++-10
+    sudo apt install libstdc++-10-dev libstdc++-10-doc
+    cd into repo
+    python3 setup.py build_ext -i (Setup modificato della repository scaricata)
+    python3 setup.py install
+elif [[ "$OSTYPE" == "darwin"* ]]; then
+    # fa cacare MAC iOS Apple
+fi
 # replace tp_print with tp_vectorcall_offset in libfreenect/wrappers/python/freenect.c
 
 
