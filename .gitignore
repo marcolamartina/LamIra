@@ -132,7 +132,7 @@ dmypy.json
 .pyre/
 
 # weights
-src/Intent_classification/Weights/
+src/Intent_classification/Weights/*
 
 # datasets
-Datasets/
+Datasets/*
