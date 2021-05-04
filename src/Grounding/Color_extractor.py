@@ -21,11 +21,12 @@ class Color_extractor:
         lab = cv2.cvtColor(image, cv2.COLOR_BGR2LAB)
         rows,cols,channels = lab.shape
         pixels=[cv2lab_to_cielab(lab[i,j]) for j in range(cols) for i in range(rows) if image[i,j].tolist()!=[0,0,0]]
-        centroid_list=kmeans(pixels)
+        centroid_list=kmeans(pixels, n_clusters=3, dimensions=False)
         #cv2.imshow('image',image)
         #cv2.waitKey(0)
         #cv2.destroyAllWindows()
-        return centroid_list
+        centroid_list_flatten=[item for sublist in centroid_list for item in sublist]
+        return centroid_list_flatten
      
 
     def classify(self,features):
@@ -90,7 +91,7 @@ def main():
     img = cv2.imread(path)
     e=Color_extractor()
     centroids=e.extract(img)
-    print("Centroid list: {}".format(round_list(centroids)))
+    print("Color descriptor: {}".format(round_list(centroids)))
 
 
 

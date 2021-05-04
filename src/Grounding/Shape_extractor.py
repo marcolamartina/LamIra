@@ -1,7 +1,6 @@
 import cv2
 import os
 import sys
-import pcl
 from math import copysign, log10
 import numpy as np
 import matplotlib.pyplot as plt
@@ -12,6 +11,10 @@ import math
 import itertools
 from sklearn.mixture import GaussianMixture
 from sklearn.neighbors import KDTree
+try:
+    import pcl
+except:
+    pass    
 
 SYMMETRY_MEASURE_CLOUD_NORMALS_TRADEOFF= 0.2    # scaling factor for difference in normals wrt. difference in position for points,
                                                 # when computing difference between two point clouds. 
@@ -427,7 +430,8 @@ class Shape_extractor:
         gm = GaussianMixture(n_components=2, random_state=0).fit(X)
         return np.max(gm.means_[:,0])     
 
-    def get_image(self, filename, image_path=data_dir_images):
+def main():
+    def get_image(filename, image_path=data_dir_images):
         path=os.path.join(image_path,filename)
         if "depthcrop" in filename or 'maskcrop' in filename:
             im = cv2.imread(path,0)
@@ -435,12 +439,11 @@ class Shape_extractor:
             im = cv2.imread(path)   
         return im 
 
-    def apply_mask(self,mask,image):
+    def apply_mask(mask,image):
         i=image.copy()
         i[mask == 0]=0
         return i       
 
-def main():
     from Grounding import round_list
     try:
         files = os.listdir(data_dir_images)
@@ -449,14 +452,14 @@ def main():
         os._exit(1)
     e=Shape_extractor()
     files.sort()
-    crop_masks=[e.get_image(i) for i in files if i.endswith("maskcrop.png")]
-    crop_depth=[e.get_image(i) for i in files if i.endswith("depthcrop.png")]
+    crop_masks=[get_image(i) for i in files if i.endswith("maskcrop.png")]
+    crop_depth=[get_image(i) for i in files if i.endswith("depthcrop.png")]
     names=[" ".join(i.split("_")[0:-4]) for i in files if i.endswith("depthcrop.png")]
-    depths = [ e.apply_mask(m,i) for m, i in zip(crop_masks,crop_depth)]
+    depths = [ apply_mask(m,i) for m, i in zip(crop_masks,crop_depth)]
     
     name,depth=names[0],depths[0]
     descriptors=e.extract(depth)   
-    print("Descriptors: {}".format(round_list(descriptors)))    
+    print("Shape descriptors: {}".format(round_list(descriptors)))    
 
 
 if __name__=="__main__":
