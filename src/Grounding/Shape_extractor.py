@@ -28,7 +28,7 @@ try:
     data_dir_images = "/content/drive/My Drive/Tesi/Media/Images/"
 except:
     data_dir_shape_extractor = os.path.dirname(__file__)
-    data_dir_images =os.path.join(data_dir_shape_extractor,"..","..","Datasets","rgbd-dataset","bell_pepper","bell_pepper_2")
+    data_dir_images =os.path.join(data_dir_shape_extractor,"..","..","Datasets","rgbd-dataset","bell_pepper","bell_pepper_1")
 
 class Shape_extractor:
     def extract(self,image):
@@ -151,6 +151,9 @@ class Shape_extractor:
         bins=np.ones(NUMBINS)
         neighbors = tree.query_radius(points, NNradius)
         for i,(p1,n1,neighbors_current) in enumerate(zip(points,normals,neighbors)):
+            if np.isnan(n1).any():
+                N-=1
+                continue
             binsum = NUMBINS
             n2=(np.random.rand(3)+1)/2
             n2=n2-np.dot(n1,n2)*n1
@@ -391,10 +394,11 @@ class Shape_extractor:
         m=cv2.cvtColor(mask, cv2.COLOR_GRAY2BGR)
         cv2.drawContours(m, contours, -1, (0,255,255), 1)
         t=3
-        contours=contours[0]
+        contours=max(contours,key=lambda x: x.shape[0])
         l=len(contours)
         vectors=[contours[(i+2)%l]-contours[(i-2)%l] for i in range(0,l,t)]
         l=len(vectors)
+        
         for i in range(l):
             angle=self.get_angle(vectors[i][0],vectors[(i+1)%l][0])
             if angle in hist.keys():
@@ -415,7 +419,7 @@ class Shape_extractor:
             plt.xticks(x_coordinates,y)
             plt.show()          
         h=[i/l for i in hist.values()]  
-        h2=[(k,v) for k,v in hist.items()]        
+        h2=[(k,v) for k,v in hist.items()]       
         return h2,self.entropy(h)
 
     def calculate_smoothness_2d(self, mask, histogram):
@@ -451,11 +455,8 @@ def main():
     depths = [ e.apply_mask(m,i) for m, i in zip(crop_masks,crop_depth)]
     
     name,depth=names[0],depths[0]
-    
-    descriptors=e.extract(depth)
-    print("Descriptors {}: ".format(name),end='')
-    for d in descriptors:    
-        print("{:.4f}".format(d),end=' ')
+    descriptors=e.extract(depth)   
+    print("Descriptors: {}".format(round_list(descriptors)))    
 
 
 if __name__=="__main__":
