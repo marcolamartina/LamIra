@@ -73,23 +73,28 @@ if [[ "$OSTYPE" == "linux-gnu"* ]]; then
     export LD_LIBRARY_PATH=/usr/local/lib
 fi
 sudo python3 setup.py install
-
-if [[ "$OSTYPE" == "linux-gnu"* ]]; then
-    sudo python3 setup.py install
-    sudo apt-get update -y
-    sudo apt-get install libpcl-dev -y
-    Download Repo from (https://github.com/Sirokujira/python-pcl.git)
-    sudo apt install gcc-10 gcc-10-base gcc-10-doc g++-10
-    sudo apt install libstdc++-10-dev libstdc++-10-doc
-    cd into repo
-    python3 setup.py build_ext -i (Setup modificato della repository scaricata)
-    python3 setup.py install
-elif [[ "$OSTYPE" == "darwin"* ]]; then
-    # fa cacare MAC iOS Apple
-fi
 # replace tp_print with tp_vectorcall_offset in libfreenect/wrappers/python/freenect.c
 
+# shape extractor
+if [[ "$OSTYPE" == "linux-gnu"* ]]; then
+    sudo apt-get install libpcl-dev -y
+    sudo apt install gcc-10 gcc-10-base gcc-10-doc g++-10
+    sudo apt install libstdc++-10-dev libstdc++-10-doc
+    git clone https://github.com/Sirokujira/python-pcl.git
+    cd python-pcl
+    python3 setup.py build_ext -i # Setup modificato
+    python3 setup.py install
+elif [[ "$OSTYPE" == "darwin"* ]]; then
+    # don't work
+    brew install pcl
+fi
+git clone https://github.com/Sirokujira/python-pcl.git
+cd python-pcl
+python3 setup.py build_ext -i # Setup modificato
+python3 setup.py install
 
+# texture extractor
+pip3 install mahotas
 
 
 
