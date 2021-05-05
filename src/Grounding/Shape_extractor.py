@@ -13,8 +13,9 @@ from sklearn.mixture import GaussianMixture
 from sklearn.neighbors import KDTree
 try:
     import pcl
+    dummy=False
 except:
-    pass    
+    dummy=True    
 
 SYMMETRY_MEASURE_CLOUD_NORMALS_TRADEOFF= 0.2    # scaling factor for difference in normals wrt. difference in position for points,
                                                 # when computing difference between two point clouds. 
@@ -35,6 +36,8 @@ except:
 
 class Shape_extractor:
     def extract(self,image):
+        if dummy:
+            return [random.random() for _ in range(10)]
         descriptors=self.calculate_descriptors(image)
         return descriptors
 
