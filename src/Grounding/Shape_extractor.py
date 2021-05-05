@@ -124,10 +124,13 @@ class Shape_extractor:
             accum += relweight*(1.0 - dot)   
         return accum/N
 
-    def calculate_compactness_3d(self, points):    
+    def calculate_compactness_3d(self, points, pixel_length):   
+        return points.shape[0] / pixel_length**2
+        ''' 
         max_length = np.max(points,axis=0)[0]
         min_length = np.min(points,axis=0)[0]
         return points.shape[0] / (max(max_length-min_length, 0.0000001)**2)
+        '''
 
     def calculate_symmetry_3d(self, points_np, normals, relweight=SYMMETRY_MEASURE_CLOUD_NORMALS_TRADEOFF):
         mins=points_np.min(axis=0)
@@ -331,7 +334,7 @@ class Shape_extractor:
     def calculate_descriptors_3d(self, depth):
         cloud,normals=self.get_cloud_and_normals(depth)
 
-        compactness_3d=self.calculate_compactness_3d(cloud)
+        compactness_3d=self.calculate_compactness_3d(cloud,depth.shape[0])
         symmetry_3d=self.calculate_symmetry_3d(cloud, normals)
         global_convexity_3d=self.calculate_global_convexity_3d(cloud)
         local_convexity_3d,smoothness_3d=self.calculate_local_convexity_and_smoothness_3d(cloud, normals)
@@ -375,12 +378,15 @@ class Shape_extractor:
 
     def calculate_global_convexity_2d(self, mask):
         contours, _ = cv2.findContours(mask, cv2.RETR_EXTERNAL,cv2.CHAIN_APPROX_NONE)
-        hull = cv2.convexHull(contours[0])
+        contours=max(contours,key=lambda x: x.shape[0])
+        hull = cv2.convexHull(contours)
         m=mask.copy()
         cv2.drawContours(m, [hull], -1, 150, 1)
         contours_pos=np.argwhere(m==150)
         points=np.argwhere(m==255)
         result=np.average(np.min(np.linalg.norm(contours_pos - points[:,None], axis=-1),axis=1))
+        #normalize
+        result/=max(mask.shape)/2
         return result
 
     def get_angle(self, v1,v2):
@@ -430,8 +436,8 @@ class Shape_extractor:
 
     def calculate_smoothness_2d(self, mask, histogram):
         X = np.array(histogram)
-        gm = GaussianMixture(n_components=2, random_state=0).fit(X)
-        return np.max(gm.means_[:,0])     
+        gm = GaussianMixture(n_components=2, random_state=0).fit(X)        
+        return np.max(gm.means_[:,0])/180  #normalized  
 
 def main():
     def get_image(filename, image_path=data_dir_images):

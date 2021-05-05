@@ -1,6 +1,9 @@
 import cv2
 import random
-import mahotas
+try:
+    import mahotas
+except:
+    pass    
 import os
 
 try:
