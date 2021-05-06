@@ -105,7 +105,7 @@ class Kinect:
         return m
 
     def get_image_roi(self):
-        i = array_to_image(self.image,self.i_shape)
+        #i = array_to_image(self.image,self.i_shape)
         d = array_to_image(self.depth,self.d_shape)
         m = array_to_image(self.merged,self.m_shape)
         result=[]
@@ -114,12 +114,12 @@ class Kinect:
                 break
             start=(self.roi[k],self.roi[k+1])
             end=(self.roi[k+2],self.roi[k+3])
-            i_roi = i[start[1]:end[1], start[0]:end[0]]
+            #i_roi = i[start[1]:end[1], start[0]:end[0]]
             d_roi = d[start[1]:end[1], start[0]:end[0]]
             m_roi = m[start[1]:end[1], start[0]:end[0]]
             _,mask=cv2.threshold(cv2.cvtColor(m_roi, cv2.COLOR_BGR2GRAY),1,255,cv2.THRESH_BINARY)
             d_m_roi = d_roi*mask
-            result.append((i_roi,d_roi,m_roi,d_m_roi))
+            result.append((m_roi,d_m_roi))
         return result
 
 

@@ -32,7 +32,10 @@ try:
     data_dir_images = "/content/drive/My Drive/Tesi/Media/Images/"
 except:
     data_dir_shape_extractor = os.path.dirname(__file__)
-    data_dir_images =os.path.join(data_dir_shape_extractor,"..","..","Datasets","rgbd-dataset","bell_pepper","bell_pepper_1")
+    data_dir_images = os.path.join(data_dir_shape_extractor,"..","..","Datasets","rgbd-dataset")
+    data_dir_images = os.path.join(data_dir_images,random.choice(os.listdir(data_dir_images)))
+    data_dir_images = os.path.join(data_dir_images,random.choice(os.listdir(data_dir_images)))
+
 
 class Shape_extractor:
     def extract(self,image):
@@ -145,7 +148,6 @@ class Shape_extractor:
                     +self.cloudAlignmentScoreDenseWithNormalsNormalized(dest, normdest, points_np, normals, relweight, ranges[i])    
             score += ranges[i]*overlap
         return -score
-
 
     def calculate_global_convexity_3d(self, points):
         hull=ConvexHull(points)
@@ -327,6 +329,11 @@ class Shape_extractor:
 
     def calculate_descriptors(self, depth):
         mask=self.get_mask(depth)
+        # for avoiding flatten depth, otherwise convexhull raise error
+        if np.min(depth[depth>0]) == np.max(depth):
+            x=random.randrange(depth.shape[0])
+            y=random.randrange(depth.shape[1])
+            depth[x,y]+=1
         descriptors_2d=self.calculate_descriptors_2d(mask)
         descriptors_3d=self.calculate_descriptors_3d(depth)
         return descriptors_2d+descriptors_3d
@@ -440,9 +447,9 @@ class Shape_extractor:
         return np.max(gm.means_[:,0])/180  #normalized  
 
 def main():
-    def get_image(filename, image_path=data_dir_images):
+    def get_image(filename,color=True, image_path=data_dir_images ):
         path=os.path.join(image_path,filename)
-        if "depthcrop" in filename or 'maskcrop' in filename:
+        if not color:
             im = cv2.imread(path,0)
         else: 
             im = cv2.imread(path)   
@@ -450,8 +457,11 @@ def main():
 
     def apply_mask(mask,image):
         i=image.copy()
-        i[mask == 0]=0
-        return i       
+        if len(image.shape)==2:
+            i[mask == 0]=0
+        else:
+            i[mask == 0]=np.array([0,0,0])    
+        return i     
 
     from Grounding import round_list
     try:
@@ -459,14 +469,13 @@ def main():
     except FileNotFoundError:
         print("{}: No such file or directory".format(data_dir_images))
         os._exit(1)
-    e=Shape_extractor()
-    files.sort()
-    crop_masks=[get_image(i) for i in files if i.endswith("maskcrop.png")]
-    crop_depth=[get_image(i) for i in files if i.endswith("depthcrop.png")]
-    names=[" ".join(i.split("_")[0:-4]) for i in files if i.endswith("depthcrop.png")]
-    depths = [ apply_mask(m,i) for m, i in zip(crop_masks,crop_depth)]
     
-    name,depth=names[0],depths[0]
+    name="_".join(random.choice(files).split("_")[0:-1])
+    depth=get_image(name+"_depthcrop.png",0)
+    mask=get_image(name+"_maskcrop.png",0)
+    depth=apply_mask(mask,depth)
+
+    e=Shape_extractor()
     descriptors=e.extract(depth)   
     print("Shape descriptors: {}".format(round_list(descriptors)))    
 

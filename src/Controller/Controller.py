@@ -7,6 +7,7 @@ from Kinect.Kinect import Kinect
 import os
 import random
 import sys
+import numpy as np
 
 
 class Controller:
@@ -57,15 +58,11 @@ class Controller:
                 return      
             self.thinking()     
             #image=self.kinect.get_image_example()
-            image,depth=self.kinect.get_image()
-            merged=self.kinect.get_merged()
-
-            import cv2
+            #image,depth=self.kinect.get_image()
+            #merged=self.kinect.get_merged()
             rois=self.kinect.get_image_roi()
-            for i,roi in enumerate(rois):
-                cv2.imwrite("/home/davide/LamIra/Test/segmentation_test/test/depth_"+str(i)+".png",roi[3])
-
-            predictions=self.grounding.classify((image,depth,merged),best_intent)
+            roi=max(rois,key=lambda x:np.count_nonzero(x[1]))
+            predictions=self.grounding.classify(roi,best_intent)
             text=self.text_production.to_text_predictions(best_intent,predictions)
             self.say_text(text)    
 
@@ -91,16 +88,17 @@ class Controller:
                 return      
             self.thinking()   
             #image=self.kinect.get_image_example()
-            image,depth=self.kinect.get_image()
-            merged=self.kinect.get_merged()
-
+            #image,depth=self.kinect.get_image()
+            #merged=self.kinect.get_merged()
+            rois=self.kinect.get_image_roi()
+            roi=max(rois,key=lambda x:np.count_nonzero(x[1]))
 
             label_confirmed=False
             while not label_confirmed:
                 label=self.get_label_input(best_intent)
                 confirm_response=self.get_input("confirm_label","Vuoi confermare {}?".format(label))
                 label_confirmed=self.verify_confirm(confirm_response)
-            self.grounding.learn((image,depth,merged),best_intent,label)
+            self.grounding.learn(roi,best_intent,label)
             text=self.text_production.to_text_subject(best_intent,label)
             self.say_text(text)
 

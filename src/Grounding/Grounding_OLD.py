@@ -53,8 +53,6 @@ class Grounding:
         features=self.extract(scan,space)
         labels=self.classify_features(features,space)
         if self.verbose:
-            if space=="shape":
-                features[space]=features[space].tolist()
             print("Intent: {}".format(intent))
             print("\n{}: {}\n{} features: {}\n".format(space,round_list(labels),space,round_list(features[space])))
             if space=="color":
@@ -307,15 +305,13 @@ def main(mod,space):
     print("Image: {}".format(image))   
     path = os.path.join(data_dir_images,image)
     img = cv2.imread(path)
-    if space=="shape":
-        img=~img
-    depth = None
-    merged=None
+    depth = cv2.cvtColor(~img, cv2.COLOR_BGR2GRAY)
+    merged=depth
     g=Grounding(True)
     if mod=="classify":
-        g.classify((img,depth,img),space+"_query")
+        g.classify((img,depth,merged),space+"_query")
     elif mod=="learning":    
-        g.learn((img,depth,img),space+"_training",image[:-4].split("-")[0])
+        g.learn((img,depth,merged),space+"_training",image[:-4].split("-")[0])
         g.spaces.show_spaces()
 
 if __name__=="__main__":

@@ -1,35 +1,27 @@
-import cv2
-import matplotlib.pyplot as plt
+# importing required libraries
+import numpy as np
+import mahotas
+from pylab import imshow, show
 import os
-
-def get_gradient(src):
-
-    sobelx = cv2.Sobel(src,cv2.CV_32F,1,0,ksize=5)
-    sobely = cv2.Sobel(src,cv2.CV_32F,0,1,ksize=5)
-
-    grad = sobelx + sobely
-    mag = cv2.magnitude(sobelx, sobely)  # so my Mat element values could be anything between 0 and 1???
-    ori = cv2.phase(sobelx, sobely, True) # so my Mat element values could be anything between 0 and 360 degrees???
-    return [grad, mag, ori]
-
-path=os.path.join(os.path.dirname(__file__),"palla-da-tennis.jpg")
-src=cv2.imread(path)
-#cv2.imshow("img",src)
+import cv2
+import eolearn.features.haralick as haralick
+  
+# loading image
+path=os.path.dirname(__file__)
+leaf=os.path.join(path,"leaf.tiff")
+img = cv2.imread(leaf)
+img = cv2.cvtColor(img,cv2.COLOR_BGR2GRAY)
+print(img.shape)
+img[img>250]=0
+#cv2.imshow("pippo",img)
 #cv2.waitKey(0)
 
-grad_res = get_gradient(src)
-
-# number of bins is 100 from 0 to 1. Ie, 0.001, 0.002, ... 1.000 
-# am I correct?
-mag_hist = cv2.calcHist([grad_res[1]],[0],None,[1],[0,100]) 
-
-ori_hist = cv2.calcHist([grad_res[2]],[0],None,[360],[0,360]) 
-
-plt.plot(mag_hist)
-plt.xlim([0,1])
-
-#plt.plot(ori_hist)
-#plt.xlim([0,360])
-
-plt.show()
+ 
+# getting haralick features
+h_feature = haralick.HaralickTask(img)
+print(h_feature)
+exit(0) 
+# showing the features
+for i,h in enumerate(h_feature):
+    print(i+1,round(h,4))
 

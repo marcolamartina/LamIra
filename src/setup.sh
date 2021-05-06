@@ -94,7 +94,7 @@ python3 setup.py build_ext -i # Setup modificato
 python3 setup.py install
 
 # texture extractor
-pip3 install mahotas
+pip3 install mahotas==1.2.0
 
 
 
