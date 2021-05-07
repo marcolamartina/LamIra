@@ -1,3 +1,3 @@
 Questo è {art_indef}{label}
-Sono sicuro sia è {art_indef}{label}
+Sono sicuro sia {art_indef}{label}
 Sto vedendo qualcosa a forma di {label}
