@@ -12,8 +12,8 @@ try:
 except:
     data_dir_texture_extractor = os.path.dirname(__file__)
     data_dir_images = os.path.join(data_dir_texture_extractor,"..","..","Datasets","rgbd-dataset")
-    data_dir_images = os.path.join(data_dir_images,random.choice(os.listdir(data_dir_images)))
-    data_dir_images = os.path.join(data_dir_images,random.choice(os.listdir(data_dir_images)))
+    data_dir_images = os.path.join(data_dir_images,random.choice([f.name for f in os.scandir(data_dir_images) if f.is_dir() and not f.name.startswith("_")]))
+    data_dir_images = os.path.join(data_dir_images,random.choice([f.name for f in os.scandir(data_dir_images) if f.is_dir() and not f.name.startswith("_")]))
 
 
 class Texture_extractor:

@@ -9,7 +9,7 @@ import pickle
 import itertools
 import math
 import ast
-import pickle
+
 if __package__:
     test=False
     from Grounding.Color_extractor import Color_extractor, cielab_to_cv2lab, cv2lab_to_cielab, cielab_to_rgb
@@ -30,8 +30,8 @@ except:
     data_dir_grounding = os.path.dirname(__file__)
     data_dir_knowledge = os.path.join(data_dir_grounding,"knowledge")
     data_dir_images = os.path.join(data_dir_grounding,"..","..","Datasets","rgbd-dataset")
-    data_dir_images = os.path.join(data_dir_images,random.choice(os.listdir(data_dir_images)))
-    data_dir_images = os.path.join(data_dir_images,random.choice(os.listdir(data_dir_images)))
+    data_dir_images = os.path.join(data_dir_images,random.choice([f.name for f in os.scandir(data_dir_images) if f.is_dir() and not f.name.startswith("_")]))
+    data_dir_images = os.path.join(data_dir_images,random.choice([f.name for f in os.scandir(data_dir_images) if f.is_dir() and not f.name.startswith("_")]))
 
 def round_list(l):
     if not l:
@@ -60,12 +60,30 @@ class Grounding:
         features=self.extract(scan,space)
         labels=self.classify_features(features,space)
         if self.verbose and space=="color" and test:
-            self.print_colors(features['color'])        
+            self.print_colors(features['color'])         
         return labels
 
-    def classify_features(self,features,space_name):
-        if space_name=="general":
-            return sorted([(i, random.random()) for i in ["palla da tennis", "uovo", "banana", "pera", "anguria", "anguilla"]],key=lambda x:x[1])
+    def classify_general_features(self,features):
+        MAX_ALTERNATIVE=2
+        alternative_list=[f[:MAX_ALTERNATIVE] for f in features]
+        combs=list(itertools.product(*alternative_list))
+        components=[]
+        for c in combs:
+            prob=0
+            labels=[]
+            for e in c:
+                prob+=e[1]
+                labels.append(e[0])
+            components.append((labels,prob))
+        components.sort(key=lambda x:x[1],reverse=True)        
+        return [tuple(c[0]) for c in components]
+
+    def extract_general_features(self,features):
+        features_general=[self.classify_features(features,s) for s in features.keys() if s!="general"]
+        feature=self.classify_general_features(features_general)
+        return feature       
+
+    def classify_features(self,features,space_name): 
         feature=features[space_name]   
         distances=self.spaces.spaces[space_name].classify(feature) 
         classifications=[]
@@ -90,12 +108,17 @@ class Grounding:
             features['shape']=self.shape_extractor.extract(depth_masked)
         if space_name in ["texture","general"]:     
             features['texture']=self.texture_extractor.extract(color_masked)
-        print("{} features: {}".format(space_name,round_list(features[space_name])))    
+        if space_name=="general":
+            features['general']=self.extract_general_features(features)
+        if self.verbose:
+            if space_name=="general":
+                print("{} features: {}".format(space_name,features[space_name]))
+            else:
+                print("{} features: {}".format(space_name,round_list(features[space_name])))    
         return features
  
 
     def learn(self, scan, intent, label):
-        # TODO general learn
         color_masked,depth_masked=scan
         space_label=intent[:-9]
         features=self.extract(scan,space_label)
@@ -104,7 +127,7 @@ class Grounding:
   
 
     def load_knowledge(self):
-        space_names = [ f.name for f in os.scandir(data_dir_knowledge) if f.is_dir() ] # ["color","shape","texture"]
+        space_names = [ f.name for f in os.scandir(data_dir_knowledge) if f.is_dir() ] # ["color","shape","texture","general"]
         self.spaces = Tensor_spaces(space_names)
         for space_label,space in self.spaces.spaces.items():
             folder = os.path.join(data_dir_knowledge,space_label)
@@ -114,8 +137,15 @@ class Grounding:
                 path = os.path.join(folder,knowledge_file)
                 knowledge_name = knowledge_file[:-7]
                 with open(path, "rb") as f:    
-                    space.space[knowledge_name]=pickle.loads(f.read()) 
-
+                    space.space[knowledge_name]=pickle.loads(f.read())
+            if space_label=="general":
+                for label, features in space.space.items():
+                    for feature in features:  
+                        if feature in space.space_inv.keys(): # features tuple just added
+                            space.space_inv[feature].append(label)
+                        else: # new features tuple
+                            space.space_inv[feature]=[label]       
+        
 
     def print_colors(self,color_list):
         color_matrix=None
@@ -132,17 +162,17 @@ class Grounding:
 
 class Tensor_spaces:
     def __init__(self, names):
-        self.spaces={l:Tensor_space(i,l) for i,l in enumerate(names)}  
+        self.spaces={l:Tensor_space(l) for l in names if l!="general"}
+        self.spaces["general"]=Conseptual_space("general") 
 
     def insert(self,space_label,label,point):
        self.spaces[space_label].insert(label,point) 
    
 
 class Tensor_space:
-    def __init__(self,space_index,space_label):
+    def __init__(self,space_label):
         self.space={}
         self.space_label=space_label
-        self.space_index=space_index
 
     def save_knowledge(self,label):
         with open(os.path.join(data_dir_knowledge,self.space_label,label+".pickle"), "wb") as f:
@@ -183,6 +213,35 @@ class Tensor_space:
         dist, _ = tree.query(np.array([feature]), k=1)
         return dist[0][0]
 
+
+class Conseptual_space(Tensor_space):
+    def __init__(self,space_label):
+        super().__init__(space_label)
+        self.space_inv={}
+
+    def classify(self,features):
+        result=[]
+        for w,feature in enumerate(features):
+            if feature in self.space_inv.keys():
+                # TODO sistemare pesi
+                result+=[(label,w+1/len(self.space[label])) for label in self.space_inv[feature]]
+        if len(result):
+            return sorted(result,key=lambda x:x[1])
+        return [("Niente",1)]   
+
+    def insert(self,label,features):
+        if label in self.space.keys(): # label just learned
+            self.space[label].append(features)
+        else: # new features tuple
+            self.space[label]=features
+        for feature in features:        
+            if feature in self.space_inv.keys(): # features tuple just learned
+                self.space_inv[feature].append(label)
+            else: # new features tuple
+                self.space_inv[feature]=[label]
+        self.save_knowledge(label)    
+
+
 def main(mod,space):
     def get_image(filename,color=True, image_path=data_dir_images ):
         path=os.path.join(image_path,filename)
@@ -220,6 +279,4 @@ def main(mod,space):
         g.learn((img,depth),space+"_training"," ".join(name.split("_")[:-3]))
 
 if __name__=="__main__":
-    main("classify","color")           
-
-
+    main("classify","general")           
