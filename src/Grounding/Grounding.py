@@ -85,7 +85,14 @@ class Grounding:
 
     def classify_features(self,features,space_name): 
         feature=features[space_name]   
-        distances=self.spaces.spaces[space_name].classify(feature) 
+        distances=self.spaces.spaces[space_name].classify(feature)
+        '''
+        if type(distances[0])==str:
+            if distances[0]=="unsure":
+                return distances[1]
+            else:
+                distances=distances[1]
+        '''        
         classifications=[]
         probability=0
         for l,d in distances:
@@ -124,6 +131,7 @@ class Grounding:
         features=self.extract(scan,space_label)
         feature=features[space_label]
         self.spaces.insert(space_label,label,feature)
+        return features
   
 
     def load_knowledge(self):
@@ -220,14 +228,54 @@ class Conseptual_space(Tensor_space):
         self.space_inv={}
 
     def classify(self,features):
-        result=[]
+        print(self.space)
+        result={}
         for w,feature in enumerate(features):
             if feature in self.space_inv.keys():
-                # TODO sistemare pesi
-                result+=[(label,w+1/len(self.space[label])) for label in self.space_inv[feature]]
+                for label in self.space_inv[feature]:
+                    if label in result.keys():
+                        result[label]-=1/(w+0.000001)
+                    else:    
+                        result[label]=w
+                min_w=min(result.values())
+                result={label:min_w+weight for label,weight in result.items()}    
         if len(result):
-            return sorted(result,key=lambda x:x[1])
-        return [("Niente",1)]   
+            return sorted(list(result.items()),key=lambda x:x[1])
+        # no matching
+        # TODO to fix
+
+        best_label="Niente"
+        best_color=""
+        best_shape=""
+        best_texture=""
+        color,shape,texture=features[0]
+        best_weight=0
+        for f,l in self.space_inv.items():
+            label=l[0]    
+            weight=0
+            color_p,shape_p,texture_p=f
+            if color_p==color:
+                weight+=1
+            if shape_p==shape:
+                weight+=2 # shape is more important
+            if texture_p==texture:
+                weight+=1    
+            if weight>best_weight:
+                best_label=label
+                best_weight=weight
+                best_color,best_shape,best_texture=f
+            if weight>=3:
+                break    
+        result=[best_label]
+        if best_color!=color:
+            result.append((color,best_color))
+        if best_shape!=shape:
+            result.append((shape,best_shape))
+        if best_texture!=texture:
+            result.append((texture,best_texture))  
+        # return "unsure",result
+        print("Not matched")
+        return [(best_label,1)]
 
     def insert(self,label,features):
         if label in self.space.keys(): # label just learned
@@ -278,5 +326,80 @@ def main(mod,space):
     elif mod=="learning":    
         g.learn((img,depth),space+"_training"," ".join(name.split("_")[:-3]))
 
+def learn_dataset():
+    def get_image(filename,color=True, image_path=data_dir_images ):
+        path=os.path.join(image_path,filename)
+        if not color:
+            im = cv2.imread(path,0)
+        else: 
+            im = cv2.imread(path)   
+        return im 
+
+    def apply_mask(mask,image):
+        i=image.copy()
+        if len(image.shape)==2:
+            i[mask == 0]=0
+        else:
+            i[mask == 0]=np.array([0,0,0])    
+        return i
+
+    path = os.path.dirname(__file__)    
+    path = os.path.join(path,"..","..","Datasets")
+    path_ds = os.path.join(path,"rgbd-dataset")
+    path_descriptors = os.path.join(path,"dataset-descriptors")
+
+    with open(path_ds+"/training.txt", "r") as f:
+        for line in f.readlines():
+            line=line.strip()
+            line=line.split(":")
+            obj = line[0].rsplit("_", 1)
+            name = obj[0]
+            nr = obj[1]
+            features = line[1].split(";")
+            shape=features[0]
+            color=features[1]
+            texture=features[2]
+            path_images = os.path.join(path_ds, name, line[0])
+
+            try:
+                images = os.listdir( path_images )
+            except FileNotFoundError:
+                print("{}: No such file or directory".format(path))
+                os._exit(1)  
+            
+
+            for i in sorted(images):
+                if i.endswith(".png"):
+                    i=i.rsplit("_", 1)[0]
+                    depth=get_image(i+"_depthcrop.png",0, image_path=path_images)
+                    img=get_image(i+"_crop.png", image_path=path_images)
+                    mask=get_image(i+"_maskcrop.png",0, image_path=path_images)
+                    depth=apply_mask(mask,depth)
+                    img=apply_mask(mask,img)
+                    print("Image: {}".format(i))   
+                    
+                    g=Grounding(True)
+
+                    #features=g.learn((img,depth),"general_training",color)
+                    #color_descriptor = features["color"]
+                    #shape_descriptor = features["shape"]
+                    #texture_descriptor = features["texture"]
+
+                    color_descriptor = g.learn((img, depth),"color_training",color)
+                    color_descriptor = color_descriptor["color"]
+                    shape_descriptor = g.learn((img, depth),"shape_training",shape)
+                    shape_descriptor = shape_descriptor["shape"]
+                    texture_descriptor = g.learn((img,depth),"texture_training",texture)
+                    texture_descriptor = texture_descriptor["texture"]
+
+                    text=["Color:"+', '.join([str(el) for el in color_descriptor])+"\n", "Shape:"+', '.join([str(el) for el in shape_descriptor])+"\n", "Texture:"+', '.join([str(el) for el in texture_descriptor])+"\n"]
+                            
+                    descr_path=os.path.join(path_descriptors, name, line[0])
+                    with open(descr_path+"/"+i+".txt", "w+") as f:
+                        f.writelines(text)
+                    
+                    os._exit(1) #da rimuovere per fare tutte
+    
 if __name__=="__main__":
-    main("classify","general")           
+    #main("classify","general")
+    learn_dataset()           
