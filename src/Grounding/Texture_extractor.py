@@ -15,12 +15,38 @@ except:
     data_dir_images = os.path.join(data_dir_images,random.choice([f.name for f in os.scandir(data_dir_images) if f.is_dir() and not f.name.startswith("_")]))
     data_dir_images = os.path.join(data_dir_images,random.choice([f.name for f in os.scandir(data_dir_images) if f.is_dir() and not f.name.startswith("_")]))
 
+'''
+haralick_labels = ["Angular Second Moment",
+                   "Contrast",
+                   "Correlation",
+                   "Sum of Squares: Variance",
+                   "Inverse Difference Moment",
+                   "Sum Average",
+                   "Sum Variance",
+                   "Sum Entropy",
+                   "Entropy",
+                   "Difference Variance",
+                   "Difference Entropy",
+                   "Information Measure of Correlation 1",
+                   "Information Measure of Correlation 2",
+                   "Maximal Correlation Coefficient"]
+'''
 
 class Texture_extractor:
     def extract(self,image):
-        #image = cv2.cvtColor(image,cv2.COLOR_BGR2GRAY)
+        image = cv2.cvtColor(image,cv2.COLOR_BGR2GRAY)
         texture_feature = mahotas.features.haralick(image)
-        return np.mean(texture_feature,axis=0).tolist()
+        texture_feature = np.mean(texture_feature,axis=0).tolist()
+        return self.normalize(texture_feature,image)
+
+    def normalize(self,features,image):
+        unique = np.unique(image)
+        N=len(unique)
+        features[1]/=N
+        features[3]/=N**2
+        features[5]/=N
+        features[6]/=N**2
+        return features
 
     def classify(self,features):
         labels=["ruvido", "liscio", "intrecciato", "nido d'ape", "damascato", "feltro"]
@@ -51,11 +77,12 @@ def main():
         os._exit(1)
     
     name="_".join(random.choice(files).split("_")[0:-1])
-    depth=get_image(name+"_depthcrop.png",0)
     mask=get_image(name+"_maskcrop.png",0)
-    depth=apply_mask(mask,depth)
+    img=get_image(name+"_crop.png")
+    img=apply_mask(mask,img)
+
     e=Texture_extractor()
-    descriptors=e.extract(depth)   
+    descriptors=e.extract(img)   
     print("Texture descriptors: {}".format(round_list(descriptors)))    
 
 

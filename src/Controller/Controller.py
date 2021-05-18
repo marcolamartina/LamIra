@@ -1,3 +1,4 @@
+from scipy.sparse.construct import kron
 from Speech_to_text.Speech_to_text import Speech_to_text
 from Grounding.Grounding import Grounding
 from Intent_classification.Intent_classification import BERT_Arch,Intent_classification
@@ -7,6 +8,7 @@ from Kinect.Kinect import Kinect
 import os
 import random
 import sys
+import traceback
 import numpy as np
 
 
@@ -62,9 +64,14 @@ class Controller:
             #merged=self.kinect.get_merged()
             rois=self.kinect.get_image_roi()
             roi=max(rois,key=lambda x:np.count_nonzero(x[1]))
-            predictions=self.grounding.classify(roi,best_intent)
-            text=self.text_production.to_text_predictions(best_intent,predictions)
-            self.say_text(text)    
+            try:
+                predictions=self.grounding.classify(roi,best_intent)
+                text=self.text_production.to_text_predictions(best_intent,predictions)
+                self.say_text(text)
+            except:
+                self.log(traceback.format_stack())
+                self.say("error")
+                
 
     def training_mode(self):
         while True:
@@ -98,9 +105,13 @@ class Controller:
                 label=self.get_label_input(best_intent)
                 confirm_response=self.get_input("confirm_label","Vuoi confermare {}?".format(label))
                 label_confirmed=self.verify_confirm(confirm_response)
-            self.grounding.learn(roi,best_intent,label)
-            text=self.text_production.to_text_subject(best_intent,label)
-            self.say_text(text)
+            try:    
+                self.grounding.learn(roi,best_intent,label)
+                text=self.text_production.to_text_subject(best_intent,label)
+                self.say_text(text)
+            except:
+                self.log(traceback.format_stack())
+                self.say("error")
 
     def verify_confirm(self,confirm_response):
         negative=["no","negativo"]
@@ -198,5 +209,28 @@ class Controller:
         print(text)
         os._exit(1)
 
+    def log(self,stacktrace):
+        print(stacktrace, file = sys.stdout)
 
 
+
+'''
+10 x 1
+13 x 1  kron
+________________
+130 x 1
+9 x 1   kron
+_______________
+1170
+
+10 x 1
+1 x 13  kron
+________________
+10 x 13
+9 x 1   kron
+or 1 x 9
+_______________
+90 x 13
+or
+10 x 117
+'''

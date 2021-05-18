@@ -95,11 +95,19 @@ class Grounding:
         '''        
         classifications=[]
         probability=0
+
+        x1,y1=0,1
+        x2,y2=np.max(distances,key=lambda x:x[1]),0
+        x2*=1.1
+        func=lambda x:y1+(x-x1)*(y2-y1)/(x2-x1)
+        classifications=[(l,func(d)) for l,d in distances]
+        '''
         for l,d in distances:
             p=1/(d+0.001)
             probability+=p
             classifications.append((l,p))
         classifications=[(l,d/probability) for l,d in classifications]
+        '''
         classifications.sort(key=lambda x:x[1],reverse=True) 
         if self.verbose:
             print("{}: {}".format(space_name,round_list(classifications)))
@@ -228,7 +236,6 @@ class Conseptual_space(Tensor_space):
         self.space_inv={}
 
     def classify(self,features):
-        print(self.space)
         result={}
         for w,feature in enumerate(features):
             if feature in self.space_inv.keys():
@@ -326,7 +333,9 @@ def main(mod,space):
     elif mod=="learning":    
         g.learn((img,depth),space+"_training"," ".join(name.split("_")[:-3]))
 
-def learn_dataset():
+def learn_features():
+    import time
+
     def get_image(filename,color=True, image_path=data_dir_images ):
         path=os.path.join(image_path,filename)
         if not color:
@@ -347,59 +356,137 @@ def learn_dataset():
     path = os.path.join(path,"..","..","Datasets")
     path_ds = os.path.join(path,"rgbd-dataset")
     path_descriptors = os.path.join(path,"dataset-descriptors")
-
+    g=Grounding(False)
+    stride=10
+    start_index=0
+    checkpoint=161
+    end=210
     with open(path_ds+"/training.txt", "r") as f:
-        for line in f.readlines():
+        lines_list=f.readlines()
+        number_of_object=len(lines_list)
+        for number_line,line in enumerate(lines_list):
+            if number_line<=checkpoint:
+                continue
+            if number_line>=end:
+                break    
             line=line.strip()
             line=line.split(":")
-            obj = line[0].rsplit("_", 1)
-            name = obj[0]
-            nr = obj[1]
+            name = line[0].rsplit("_", 1)[0]
             features = line[1].split(";")
-            shape=features[0]
-            color=features[1]
-            texture=features[2]
+            shape,color,texture=features
             path_images = os.path.join(path_ds, name, line[0])
 
             try:
                 images = os.listdir( path_images )
+                images = [i.rsplit("_", 1)[0] for index, i in enumerate(images) if i.endswith("_crop.png") and index%stride==start_index]
+                images = sorted(images)
             except FileNotFoundError:
-                print("{}: No such file or directory".format(path))
+                print("{}: No such file or directory".format(path_images))
                 os._exit(1)  
             
-
-            for i in sorted(images):
-                if i.endswith(".png"):
-                    i=i.rsplit("_", 1)[0]
-                    depth=get_image(i+"_depthcrop.png",0, image_path=path_images)
-                    img=get_image(i+"_crop.png", image_path=path_images)
-                    mask=get_image(i+"_maskcrop.png",0, image_path=path_images)
-                    depth=apply_mask(mask,depth)
-                    img=apply_mask(mask,img)
-                    print("Image: {}".format(i))   
-                    
-                    g=Grounding(True)
-
-                    #features=g.learn((img,depth),"general_training",color)
-                    #color_descriptor = features["color"]
-                    #shape_descriptor = features["shape"]
-                    #texture_descriptor = features["texture"]
-
+            #print(images)
+            #os._exit(1) #da rimuovere per fare tutte
+            l=len(images)-1
+            starting_time = time.time()
+            print("Starting learn image directory: {} at {}".format(line[0], time.asctime().split(" ")[3]))  
+            for index,i in enumerate(images):
+                #if i.endswith("_crop.png"):
+                #i=i.rsplit("_", 1)[0]
+                depth=get_image(i+"_depthcrop.png",0, image_path=path_images)
+                img=get_image(i+"_crop.png", image_path=path_images)
+                mask=get_image(i+"_maskcrop.png",0, image_path=path_images)
+                depth=apply_mask(mask,depth)
+                img=apply_mask(mask,img)
+                print("{:.2f}%".format(index*100/l))   
+                
+                #g.spaces.insert("general",label,feature)
+                try:
                     color_descriptor = g.learn((img, depth),"color_training",color)
                     color_descriptor = color_descriptor["color"]
                     shape_descriptor = g.learn((img, depth),"shape_training",shape)
                     shape_descriptor = shape_descriptor["shape"]
                     texture_descriptor = g.learn((img,depth),"texture_training",texture)
                     texture_descriptor = texture_descriptor["texture"]
+                except:
+                    print("Error")
+                    continue
+                descr_path=os.path.join(path_descriptors, name, line[0])
+                with open(descr_path+"/"+i+".txt", "w+") as f:
+                    f.writelines(str(color_descriptor)+"\n")
+                    f.writelines(str(shape_descriptor)+"\n")
+                    f.writelines(str(texture_descriptor)+"\n")
+                
+                #os._exit(1) #da rimuovere per fare tutte
 
-                    text=["Color:"+', '.join([str(el) for el in color_descriptor])+"\n", "Shape:"+', '.join([str(el) for el in shape_descriptor])+"\n", "Texture:"+', '.join([str(el) for el in texture_descriptor])+"\n"]
-                            
-                    descr_path=os.path.join(path_descriptors, name, line[0])
-                    with open(descr_path+"/"+i+".txt", "w+") as f:
-                        f.writelines(text)
-                    
-                    os._exit(1) #da rimuovere per fare tutte
+            print("100% \nFinished learn image directory {}/{}: {} at {} in {:.2f}m ".format(number_line,number_of_object,line[0], time.asctime().split(" ")[3], (time.time()-starting_time)/60))   
+
+def learn_knowledge():
+    import ast
+    from glob import glob
+
+    def translate(name):
+        translate_dict={"apple":"mela",
+                        "ball":"palla",
+                        "bell pepper":"peperone",
+                        "binder":"raccoglitore",
+                        "bowl":"ciotola",
+                        "calculator":"calcolatrice",
+                        "camera":"fotocamera",
+                        "cell phone":"telefono",
+                        "cereal box":"scatola",
+                        "coffee mug":"tazza",
+                        "comb":"spazzola",
+                        "dry battery":"batteria",
+                        "flashlight":"torcia",
+                        "food box":"scatola",
+                        "food can":"lattina",
+                        "food cup":"barattolo",
+                        "food jar":"barattolo",
+                        "garlic":"aglio",
+                        "lemon":"limone",
+                        "lime":"lime",
+                        "onion":"cipolla",
+                        "orange":"arancia",
+                        "peach":"pesca",
+                        "pear":"pera",
+                        "potato":"patata",
+                        "tomato":"pomodoro",
+                        "soda can":"lattina",
+                        "marker":"pennarello",
+                        "plate":"piatto",
+                        "notebook":"quaderno",
+                        "keyboard":"tastiera",
+                        "glue stick":"colla",
+                        "sponge":"spugna",
+                        "toothpaste":"dentifricio",
+                        "toothbrush":"spazzolino"
+                        }
+        try:
+            return translate_dict[name]
+        except:
+            return name    
     
+    path = os.path.dirname(__file__)    
+    path = os.path.join(path,"..","..","Datasets")
+    path_ds = os.path.join(path,"rgbd-dataset")
+    path_descriptors = os.path.join(path,"dataset-descriptors")
+    g=Grounding(False)
+
+    for filename in glob(path_descriptors+'/**', recursive=True):
+        if os.path.isfile(filename) and filename.endswith(".txt"):
+            name=" ".join(filename.split("_")[:-3])
+            name=translate(name)
+            with open(filename, "r") as f:
+                features=[ast.literal_eval(line) for line in f.readlines()]
+                features_dict={"color":features[0],"shape":features[1],"texture":features[2]}
+                try:
+                    features_label=g.extract_general_features(features_dict)
+                except:
+                    continue    
+                g.spaces.insert("general",name,features_label)
+
+                
+
 if __name__=="__main__":
     #main("classify","general")
-    learn_dataset()           
+    learn_features()           

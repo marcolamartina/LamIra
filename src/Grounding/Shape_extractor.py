@@ -418,6 +418,7 @@ class Shape_extractor:
         vectors=[contours[(i+2)%l]-contours[(i-2)%l] for i in range(0,l,t)]
         l=len(vectors)
         
+        
         for i in range(l):
             angle=self.get_angle(vectors[i][0],vectors[(i+1)%l][0])
             if angle in hist.keys():

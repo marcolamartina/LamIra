@@ -67,10 +67,10 @@ class Color_extractor:
         return (math.hypot(x,y), angle) 
 
 def cielab_to_cv2lab(cielab):
-    return [cielab[0]*2.55,cielab[1]+128,cielab[2]+128]
+    return [cielab[0]*2.56,cielab[1]+128,cielab[2]+128]
 
 def cv2lab_to_cielab(cv2lab):
-    return [cv2lab[0]/2.55,cv2lab[1]-128,cv2lab[2]-128]
+    return [cv2lab[0]/2.56,cv2lab[1]-128,cv2lab[2]-128]
 
 def cielab_to_rgb(lab):
     rgb=cv2.cvtColor(np.array([[cielab_to_cv2lab(lab)]]).astype(np.uint8), cv2.COLOR_LAB2RGB)
