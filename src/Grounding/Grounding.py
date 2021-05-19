@@ -9,15 +9,19 @@ import pickle
 import itertools
 import math
 import ast
+from glob import glob
+import traceback
+from tabulate import tabulate
+from sklearn.ensemble import RandomForestClassifier
 
 if __package__:
     test=False
-    from Grounding.Color_extractor import Color_extractor, cielab_to_cv2lab, cv2lab_to_cielab, cielab_to_rgb
+    from Grounding.Color_extractor import Color_extractor, cielab_to_cv2lab, cv2lab_to_cielab, cielab_to_rgb, normalize_color
     from Grounding.Shape_extractor import Shape_extractor
     from Grounding.Texture_extractor import Texture_extractor
 else:
     test=True
-    from Color_extractor import Color_extractor, cielab_to_cv2lab, cv2lab_to_cielab, cielab_to_rgb
+    from Color_extractor import Color_extractor, cielab_to_cv2lab, cv2lab_to_cielab, cielab_to_rgb, normalize_color
     from Shape_extractor import Shape_extractor
     from Texture_extractor import Texture_extractor 
 
@@ -29,6 +33,7 @@ try:
 except:
     data_dir_grounding = os.path.dirname(__file__)
     data_dir_knowledge = os.path.join(data_dir_grounding,"knowledge")
+    data_dir_base_knowledge = os.path.join(data_dir_grounding,"base_knowledge")
     data_dir_images = os.path.join(data_dir_grounding,"..","..","Datasets","rgbd-dataset")
     data_dir_images = os.path.join(data_dir_images,random.choice([f.name for f in os.scandir(data_dir_images) if f.is_dir() and not f.name.startswith("_")]))
     data_dir_images = os.path.join(data_dir_images,random.choice([f.name for f in os.scandir(data_dir_images) if f.is_dir() and not f.name.startswith("_")]))
@@ -52,6 +57,91 @@ class Grounding:
         self.shape_extractor=Shape_extractor()
         self.texture_extractor=Texture_extractor()
         self.load_knowledge()
+
+
+    def translate(self, name):
+        translate_dict={"apple":"mela",
+                        "ball":"palla",
+                        "bell pepper":"peperone",
+                        "binder":"raccoglitore",
+                        "bowl":"ciotola",
+                        "calculator":"calcolatrice",
+                        "camera":"fotocamera",
+                        "cell phone":"telefono",
+                        "cereal box":"scatola",
+                        "coffee mug":"tazza",
+                        "comb":"spazzola",
+                        "dry battery":"batteria",
+                        "flashlight":"torcia",
+                        "food box":"scatola",
+                        "food can":"lattina",
+                        "food cup":"barattolo",
+                        "food jar":"barattolo",
+                        "garlic":"aglio",
+                        "lemon":"limone",
+                        "lime":"lime",
+                        "onion":"cipolla",
+                        "orange":"arancia",
+                        "peach":"pesca",
+                        "pear":"pera",
+                        "potato":"patata",
+                        "tomato":"pomodoro",
+                        "soda can":"lattina",
+                        "marker":"pennarello",
+                        "plate":"piatto",
+                        "notebook":"quaderno",
+                        "keyboard":"tastiera",
+                        "glue stick":"colla",
+                        "sponge":"spugna",
+                        "toothpaste":"dentifricio",
+                        "toothbrush":"spazzolino"
+                        }
+        try:
+            return translate_dict[name]
+        except:
+            return name
+
+    
+    def sort_and_cut_dict(self,dictionary,limit=4):
+        iterator=sorted(dictionary.items(), key=lambda item: item[1], reverse=True)[:limit]
+        coef=sum([i[1] for i in iterator])
+        return {k: v/coef for k, v in iterator}
+
+
+    def create_base_knowledge(self):
+        X=[]
+        y=[]
+        data_dir = data_dir_base_knowledge+"/Data"
+        exclusion_list=["binder","camera","cell_phone"]
+        file_list=glob(data_dir+'/**', recursive=True)
+        number_of_files=len(file_list)
+        for j,filename in enumerate(file_list):
+            if os.path.isfile(filename) and filename.endswith(".txt"):
+                print("{:.2f}%".format(j*100/number_of_files))
+                name=" ".join(filename.split("_")[:-3]).rsplit("/", 1)[1]
+                if name in exclusion_list:
+                    continue
+                name=self.translate(name)
+                #folder=filename.split("/")[-2]
+                with open(filename, "r") as f:
+                    features=[]
+                    try:
+                        lines=f.readlines()
+                        for line in lines:
+                            features.append(ast.literal_eval(line))
+                        if len(features)==3:        
+                            color,shape,texture=features
+                            color=normalize_color(color)
+                            X.append(color+shape+texture)  
+                            y.append(name)
+                    except:
+                        print("Error in {}".format(filename))
+                        print(lines)
+                        continue
+        y=np.array(y)
+        X=np.array(X)
+        np.save(data_dir_base_knowledge+"/X.npy",X)
+        np.save(data_dir_base_knowledge+"/y.npy",y)                
         
     def classify(self, scan, intent):
         space=intent[:-6]
@@ -218,7 +308,6 @@ class Tensor_space:
 class Conseptual_space(Tensor_space):
     def __init__(self,space_label):
         super().__init__(space_label)
-        self.space_inv={}
 
     def classify(self,features):
         result={}
@@ -407,49 +496,7 @@ def learn_features():
 
 def learn_knowledge():
     import ast
-    from glob import glob
-
-    def translate(name):
-        translate_dict={"apple":"mela",
-                        "ball":"palla",
-                        "bell pepper":"peperone",
-                        "binder":"raccoglitore",
-                        "bowl":"ciotola",
-                        "calculator":"calcolatrice",
-                        "camera":"fotocamera",
-                        "cell phone":"telefono",
-                        "cereal box":"scatola",
-                        "coffee mug":"tazza",
-                        "comb":"spazzola",
-                        "dry battery":"batteria",
-                        "flashlight":"torcia",
-                        "food box":"scatola",
-                        "food can":"lattina",
-                        "food cup":"barattolo",
-                        "food jar":"barattolo",
-                        "garlic":"aglio",
-                        "lemon":"limone",
-                        "lime":"lime",
-                        "onion":"cipolla",
-                        "orange":"arancia",
-                        "peach":"pesca",
-                        "pear":"pera",
-                        "potato":"patata",
-                        "tomato":"pomodoro",
-                        "soda can":"lattina",
-                        "marker":"pennarello",
-                        "plate":"piatto",
-                        "notebook":"quaderno",
-                        "keyboard":"tastiera",
-                        "glue stick":"colla",
-                        "sponge":"spugna",
-                        "toothpaste":"dentifricio",
-                        "toothbrush":"spazzolino"
-                        }
-        try:
-            return translate_dict[name]
-        except:
-            return name    
+    from glob import glob   
     
     path = os.path.dirname(__file__)    
     path = os.path.join(path,"..","..","Datasets")

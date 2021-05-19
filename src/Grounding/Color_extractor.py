@@ -51,6 +51,16 @@ def cielab_to_rgb(lab):
     rgb=cv2.cvtColor(np.array([[cielab_to_cv2lab(lab)]]).astype(np.uint8), cv2.COLOR_LAB2RGB)
     return rgb.tolist()[0][0]
 
+def normalize_color(color):
+    color_normalized=[]
+    for i,f in enumerate(color):
+        if i%3==0:
+            color_normalized.append(f/256)
+        else:
+            color_normalized.append((f+128)/256)
+    return color_normalized
+   
+
 def main():
     import random
     from Grounding import round_list
