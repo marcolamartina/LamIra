@@ -136,15 +136,16 @@ class Grounding:
             for knowledge_file in knowledge_files:    
                 path = os.path.join(folder,knowledge_file)
                 knowledge_name = knowledge_file[:-7]
-                with open(path, "rb") as f:    
+                with open(path, "rb") as f:
                     space.space[knowledge_name]=pickle.loads(f.read())
             if space_label=="general":
                 for label, features in space.space.items():
-                    for feature in features:  
-                        if feature in space.space_inv.keys(): # features tuple just added
-                            space.space_inv[feature].append(label)
-                        else: # new features tuple
-                            space.space_inv[feature]=[label]       
+                    for f in features:
+                        for feature in f:
+                            if feature in space.space_inv.keys(): # features tuple just added
+                                space.space_inv[feature].append(label)
+                            else: # new features tuple
+                                space.space_inv[feature]=[label]       
         
 
     def print_colors(self,color_list):
@@ -272,7 +273,7 @@ class Conseptual_space(Tensor_space):
         if label in self.space.keys(): # label just learned
             self.space[label].append(features)
         else: # new features tuple
-            self.space[label]=features
+            self.space[label]=[features]
         for feature in features:        
             if feature in self.space_inv.keys(): # features tuple just learned
                 self.space_inv[feature].append(label)
@@ -343,7 +344,7 @@ def learn_features():
     g=Grounding(False)
     stride=10
     start_index=0
-    checkpoint=161
+    checkpoint=202
     end=210
     with open(path_ds+"/training.txt", "r") as f:
         lines_list=f.readlines()
@@ -458,7 +459,7 @@ def learn_knowledge():
 
     for filename in glob(path_descriptors+'/**', recursive=True):
         if os.path.isfile(filename) and filename.endswith(".txt"):
-            name=" ".join(filename.split("_")[:-3])
+            name=" ".join(filename.rsplit("/",1)[1].split("_")[:-3])
             name=translate(name)
             with open(filename, "r") as f:
                 features=[ast.literal_eval(line) for line in f.readlines()]
@@ -470,7 +471,7 @@ def learn_knowledge():
                 g.spaces.insert("general",name,features_label)
 
                 
-
 if __name__=="__main__":
     main("classify","general")
-    #learn_features()           
+    learn_features()
+    #learn_knowledge()           
