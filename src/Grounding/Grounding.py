@@ -85,29 +85,13 @@ class Grounding:
 
     def classify_features(self,features,space_name): 
         feature=features[space_name]   
-        distances=self.spaces.spaces[space_name].classify(feature)
-        '''
-        if type(distances[0])==str:
-            if distances[0]=="unsure":
-                return distances[1]
-            else:
-                distances=distances[1]
-        '''        
+        distances=self.spaces.spaces[space_name].classify(feature)       
         classifications=[]
-        probability=0
-
         x1,y1=0,1
-        x2,y2=np.max(distances,key=lambda x:x[1]),0
+        x2,y2=max([i[1] for i in distances]),0
         x2*=1.1
         func=lambda x:y1+(x-x1)*(y2-y1)/(x2-x1)
         classifications=[(l,func(d)) for l,d in distances]
-        '''
-        for l,d in distances:
-            p=1/(d+0.001)
-            probability+=p
-            classifications.append((l,p))
-        classifications=[(l,d/probability) for l,d in classifications]
-        '''
         classifications.sort(key=lambda x:x[1],reverse=True) 
         if self.verbose:
             print("{}: {}".format(space_name,round_list(classifications)))
@@ -488,5 +472,5 @@ def learn_knowledge():
                 
 
 if __name__=="__main__":
-    #main("classify","general")
-    learn_features()           
+    main("classify","general")
+    #learn_features()           
