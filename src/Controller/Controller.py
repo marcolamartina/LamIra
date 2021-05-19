@@ -212,25 +212,3 @@ class Controller:
     def log(self,stacktrace):
         print(stacktrace, file = sys.stdout)
 
-
-
-'''
-10 x 1
-13 x 1  kron
-________________
-130 x 1
-9 x 1   kron
-_______________
-1170
-
-10 x 1
-1 x 13  kron
-________________
-10 x 13
-9 x 1   kron
-or 1 x 9
-_______________
-90 x 13
-or
-10 x 117
-'''
