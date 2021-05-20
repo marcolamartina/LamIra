@@ -3,15 +3,10 @@ import os
 import numpy as np
 import cv2
 import matplotlib.pyplot as plt
-from mpl_toolkits.mplot3d import Axes3D
 from sklearn.neighbors import KDTree
 import pickle
-import itertools
-import math
 import ast
 from glob import glob
-import traceback
-from tabulate import tabulate
 from sklearn.ensemble import RandomForestClassifier
 
 if __package__:
@@ -158,22 +153,24 @@ class Grounding:
 
     def classify_features(self,features,space_name): 
         feature=features[space_name]   
-        distances=self.spaces.spaces[space_name].classify(feature)
         if space_name=="general":
+            probabilities=self.spaces.spaces[space_name].classify(feature)
             if self.verbose:
-                print("{}: {}".format(space_name,round_list(distances)))
-            return distances
-        classifications=[]
-        probability=0
-        for l,d in distances:
-            p=1/(d+0.001)
-            probability+=p
-            classifications.append((l,p))
-        classifications=[(l,d/probability) for l,d in classifications]
-        classifications.sort(key=lambda x:x[1],reverse=True)
-        if self.verbose:
-            print("{}: {}".format(space_name,round_list(classifications)))
-        return classifications
+                print("{}: {}".format(space_name,round_list(probabilities)))
+            return probabilities
+        else:    
+            distances=self.spaces.spaces[space_name].classify(feature)    
+            classifications=[]
+            probability=0
+            for l,d in distances:
+                p=1/(d+0.001)
+                probability+=p
+                classifications.append((l,p))
+            classifications=[(l,d/probability) for l,d in classifications]
+            classifications.sort(key=lambda x:x[1],reverse=True)
+            if self.verbose:
+                print("{}: {}".format(space_name,round_list(classifications)))
+            return classifications
 
     def extract(self,scan,space_name):
         color_masked,depth_masked=scan
@@ -257,14 +254,14 @@ class Tensor_space:
             s = pickle.dumps(self.space[label])
             f.write(s)
 
-    def classify(self,feature):
+    def classify(self,feature,limit=4):
         distances=[]
         for label,tree in self.space.items():
             d=self.distance(feature,tree)
             if d==0:
                 return [(label,d)]
             distances.append((label,d)) 
-        return sorted(distances,key=lambda x:x[1])    
+        return sorted(distances,key=lambda x:x[1])[:limit]    
 
     def insert(self,label,point):
         if label in self.space.keys(): # label just learned
