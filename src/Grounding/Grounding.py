@@ -153,36 +153,24 @@ class Grounding:
             self.print_colors(features['color'])         
         return labels
 
-    def classify_general_features(self,features):
-        MAX_ALTERNATIVE=2
-        alternative_list=[f[:MAX_ALTERNATIVE] for f in features]
-        combs=list(itertools.product(*alternative_list))
-        components=[]
-        for c in combs:
-            prob=0
-            labels=[]
-            for e in c:
-                prob+=e[1]
-                labels.append(e[0])
-            components.append((labels,prob))
-        components.sort(key=lambda x:x[1],reverse=True)        
-        return [tuple(c[0]) for c in components]
-
     def extract_general_features(self,features):
-        features_general=[self.classify_features(features,s) for s in features.keys() if s!="general"]
-        feature=self.classify_general_features(features_general)
-        return feature       
+        return normalize_color(features["color"])+features["shape"]+features["texture"]      
 
     def classify_features(self,features,space_name): 
         feature=features[space_name]   
-        distances=self.spaces.spaces[space_name].classify(feature)       
+        distances=self.spaces.spaces[space_name].classify(feature)
+        if space_name=="general":
+            if self.verbose:
+                print("{}: {}".format(space_name,round_list(distances)))
+            return distances
         classifications=[]
-        x1,y1=0,1
-        x2,y2=max([i[1] for i in distances]),0
-        x2*=1.1
-        func=lambda x:y1+(x-x1)*(y2-y1)/(x2-x1)
-        classifications=[(l,func(d)) for l,d in distances]
-        classifications.sort(key=lambda x:x[1],reverse=True) 
+        probability=0
+        for l,d in distances:
+            p=1/(d+0.001)
+            probability+=p
+            classifications.append((l,p))
+        classifications=[(l,d/probability) for l,d in classifications]
+        classifications.sort(key=lambda x:x[1],reverse=True)
         if self.verbose:
             print("{}: {}".format(space_name,round_list(classifications)))
         return classifications
@@ -222,21 +210,20 @@ class Grounding:
         for space_label,space in self.spaces.spaces.items():
             folder = os.path.join(data_dir_knowledge,space_label)
             knowledge_files = os.listdir( folder )
-            knowledge_files=[i for i in knowledge_files if i.endswith(".pickle")]
-            for knowledge_file in knowledge_files:    
-                path = os.path.join(folder,knowledge_file)
-                knowledge_name = knowledge_file[:-7]
-                with open(path, "rb") as f:
-                    space.space[knowledge_name]=pickle.loads(f.read())
             if space_label=="general":
-                for label, features in space.space.items():
-                    for f in features:
-                        for feature in f:
-                            if feature in space.space_inv.keys(): # features tuple just added
-                                space.space_inv[feature].append(label)
-                            else: # new features tuple
-                                space.space_inv[feature]=[label]       
-        
+                if "X.npy" in knowledge_files:
+                    space.space["X"]=np.load(os.path.join(folder,"X.npy"))
+                if "y.npy" in knowledge_files:
+                    space.space["y"]=np.load(os.path.join(folder,"y.npy"))         
+                space.fit()
+            else:    
+                for knowledge_file in knowledge_files:
+                    if knowledge_file.endswith(".pickle"):    
+                        path = os.path.join(folder,knowledge_file)
+                        knowledge_name = knowledge_file[:-7]
+                        with open(path, "rb") as f:
+                            space.space[knowledge_name]=pickle.loads(f.read())    
+            
 
     def print_colors(self,color_list):
         color_matrix=None
@@ -309,67 +296,30 @@ class Conseptual_space(Tensor_space):
     def __init__(self,space_label):
         super().__init__(space_label)
 
-    def classify(self,features):
-        result={}
-        for w,feature in enumerate(features):
-            if feature in self.space_inv.keys():
-                for label in self.space_inv[feature]:
-                    if label in result.keys():
-                        result[label]-=1/(w+0.000001)
-                    else:    
-                        result[label]=w
-                min_w=min(result.values())
-                result={label:min_w+weight for label,weight in result.items()}    
-        if len(result):
-            return sorted(list(result.items()),key=lambda x:x[1])
-        # no matching
-        # TODO to fix
+    def save_knowledge(self,label):
+        folder = os.path.join(data_dir_knowledge,"general")
+        np.save(self.space["X"],os.path.join(folder,"X.npy"))
+        np.save(self.space["y"],os.path.join(folder,"y.npy"))
 
-        best_label="Niente"
-        best_color=""
-        best_shape=""
-        best_texture=""
-        color,shape,texture=features[0]
-        best_weight=0
-        for f,l in self.space_inv.items():
-            label=l[0]    
-            weight=0
-            color_p,shape_p,texture_p=f
-            if color_p==color:
-                weight+=1
-            if shape_p==shape:
-                weight+=2 # shape is more important
-            if texture_p==texture:
-                weight+=1    
-            if weight>best_weight:
-                best_label=label
-                best_weight=weight
-                best_color,best_shape,best_texture=f
-            if weight>=3:
-                break    
-        result=[best_label]
-        if best_color!=color:
-            result.append((color,best_color))
-        if best_shape!=shape:
-            result.append((shape,best_shape))
-        if best_texture!=texture:
-            result.append((texture,best_texture))  
-        # return "unsure",result
-        print("Not matched")
-        return [(best_label,1)]
+
+    def classify(self,features,limit=4):
+        prob=self.clf.predict_proba(np.array([features]))[0]
+        index=np.flip(np.argsort(prob))[:limit]
+        labels=self.clf.classes_[index]
+        prob=prob[index]
+        coef=sum(prob)
+        result=[(l,p/coef) for l,p in zip(labels,prob)]
+        return result
 
     def insert(self,label,features):
-        if label in self.space.keys(): # label just learned
-            self.space[label].append(features)
-        else: # new features tuple
-            self.space[label]=[features]
-        for feature in features:        
-            if feature in self.space_inv.keys(): # features tuple just learned
-                self.space_inv[feature].append(label)
-            else: # new features tuple
-                self.space_inv[feature]=[label]
+        self.space["X"].append(np.array([features]), axis=0)
+        self.space["y"].append(np.array([label]), axis=0)
+        self.fit()
         self.save_knowledge(label)    
 
+    def fit(self):
+        self.clf = RandomForestClassifier(n_jobs=-1, n_estimators=30)
+        self.clf.fit(self.space["X"],self.space["y"])
 
 def main(mod,space):
     def get_image(filename,color=True, image_path=data_dir_images ):
@@ -500,14 +450,13 @@ def learn_knowledge():
     
     path = os.path.dirname(__file__)    
     path = os.path.join(path,"..","..","Datasets")
-    path_ds = os.path.join(path,"rgbd-dataset")
     path_descriptors = os.path.join(path,"dataset-descriptors")
     g=Grounding(False)
 
     for filename in glob(path_descriptors+'/**', recursive=True):
         if os.path.isfile(filename) and filename.endswith(".txt"):
             name=" ".join(filename.rsplit("/",1)[1].split("_")[:-3])
-            name=translate(name)
+            name=g.translate(name)
             with open(filename, "r") as f:
                 features=[ast.literal_eval(line) for line in f.readlines()]
                 features_dict={"color":features[0],"shape":features[1],"texture":features[2]}
@@ -520,5 +469,5 @@ def learn_knowledge():
                 
 if __name__=="__main__":
     main("classify","general")
-    learn_features()
+    #learn_features()
     #learn_knowledge()           
