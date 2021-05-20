@@ -122,9 +122,11 @@ class Shape_extractor:
         accum=0.0
         result = tree.query(cloud1, k=1)
         for i,(dist, ind) in enumerate(zip(*result)):
-            accum += dist[0] / dnormalize
             dot = np.dot(normals1[i],normals2[ind[0]])
-            accum += relweight*(1.0 - dot)   
+            if np.isnan(dot):
+                continue
+            accum += dist[0] / dnormalize
+            accum += relweight*(1.0 - dot)
         return accum/N
 
     def calculate_compactness_3d(self, points, pixel_length):   

@@ -30,6 +30,7 @@ except:
     data_dir_knowledge = os.path.join(data_dir_grounding,"knowledge")
     data_dir_base_knowledge = os.path.join(data_dir_grounding,"base_knowledge")
     data_dir_images = os.path.join(data_dir_grounding,"..","..","Datasets","rgbd-dataset")
+    data_dir_images_captured = os.path.join(data_dir_images,"captured","captured_1")
     data_dir_images = os.path.join(data_dir_images,random.choice([f.name for f in os.scandir(data_dir_images) if f.is_dir() and not f.name.startswith("_")]))
     data_dir_images = os.path.join(data_dir_images,random.choice([f.name for f in os.scandir(data_dir_images) if f.is_dir() and not f.name.startswith("_")]))
 
@@ -95,13 +96,6 @@ class Grounding:
             return translate_dict[name]
         except:
             return name
-
-    
-    def sort_and_cut_dict(self,dictionary,limit=4):
-        iterator=sorted(dictionary.items(), key=lambda item: item[1], reverse=True)[:limit]
-        coef=sum([i[1] for i in iterator])
-        return {k: v/coef for k, v in iterator}
-
 
     def create_base_knowledge(self):
         X=[]
@@ -299,7 +293,7 @@ class Conseptual_space(Tensor_space):
         np.save(self.space["y"],os.path.join(folder,"y.npy"))
 
 
-    def classify(self,features,limit=4):
+    def classify(self,features,limit=100):
         prob=self.clf.predict_proba(np.array([features]))[0]
         index=np.flip(np.argsort(prob))[:limit]
         labels=self.clf.classes_[index]
@@ -318,8 +312,12 @@ class Conseptual_space(Tensor_space):
         self.clf = RandomForestClassifier(n_jobs=-1, n_estimators=30)
         self.clf.fit(self.space["X"],self.space["y"])
 
-def main(mod,space):
-    def get_image(filename,color=True, image_path=data_dir_images ):
+def main(mod,space,captured=False):
+    def get_image(filename,color=True, captured=False ):
+        if captured:
+            image_path=data_dir_images_captured
+        else:
+            image_path=data_dir_images
         path=os.path.join(image_path,filename)
         if not color:
             im = cv2.imread(path,0)
@@ -336,23 +334,30 @@ def main(mod,space):
         return i
 
     try:
-        files = os.listdir(data_dir_images)
+        if captured:
+            files = os.listdir(data_dir_images_captured)
+        else:
+            files = os.listdir(data_dir_images)
     except FileNotFoundError:
         print("{}: No such file or directory".format(data_dir_images))
         os._exit(1)
-    name="_".join(random.choice(files).split("_")[0:-1])
-    depth=get_image(name+"_depthcrop.png",0)
-    img=get_image(name+"_crop.png")
-    mask=get_image(name+"_maskcrop.png",0)
-    depth=apply_mask(mask,depth)
-    img=apply_mask(mask,img)
-
-    print("Image: {}".format(name))   
-    g=Grounding(True)
-    if mod=="classify":
-        g.classify((img,depth),space+"_query")
-    elif mod=="learning":    
-        g.learn((img,depth),space+"_training"," ".join(name.split("_")[:-3]))
+    g=Grounding(True)    
+    for filename in files:
+    #filename=random.choice(files)    
+        name="_".join(filename.split("_")[0:-1])
+        depth=get_image(name+"_depthcrop.png",0,captured)
+        img=get_image(name+"_crop.png",1,captured)
+        mask=get_image(name+"_maskcrop.png",0,captured)
+        depth=apply_mask(mask,depth)
+        img=apply_mask(mask,img)
+        if captured:
+            print("Image: {}".format(filename)) 
+        else:    
+            print("Image: {}".format(name))   
+        if mod=="classify":
+            g.classify((img,depth),space+"_query")
+        elif mod=="learning":    
+            g.learn((img,depth),space+"_training"," ".join(name.split("_")[:-3]))
 
 def learn_features():
     import time
@@ -465,6 +470,6 @@ def learn_knowledge():
 
                 
 if __name__=="__main__":
-    main("classify","general")
+    main("classify","general",captured=True)
     #learn_features()
     #learn_knowledge()           

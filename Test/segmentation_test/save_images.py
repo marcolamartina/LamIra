@@ -49,6 +49,20 @@ def video_cv(video):
     """
     return video[:, :, ::-1]  # RGB -> BGR
 
+def calculate_homography(self):
+        # corners of depth
+        point_depth=[[ 436 , 15 ], [ 101 , 287 ], [442, 475], [622,259], [44, 325], [119,363], [129, 344], [187, 101], [188, 257], [410, 254],[406, 102]]
+        pts_depth = np.array(point_depth)
+
+        # corners of image
+        points_image=[[ 393 , 55 ], [ 98 , 293 ], [401, 476], [571, 272], [43, 339], [120,364],[122, 352], [175, 132],[184, 271],[383, 264],[379, 126]]
+        pts_image = np.array(points_image)
+
+        # Calculate Homography
+        h, status = cv2.findHomography(pts_image,pts_depth)
+
+        return h
+
 def get_depth():
     return pretty_depth_cv(freenect.sync_get_depth()[0])
 
@@ -286,4 +300,4 @@ def batch_mode():
 
 if __name__=="__main__":
     live_mode()
-    batch_mode()    
+    #batch_mode()    
