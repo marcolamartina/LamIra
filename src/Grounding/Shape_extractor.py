@@ -126,7 +126,7 @@ class Shape_extractor:
             if np.isnan(dot):
                 continue
             accum += dist[0] / dnormalize
-            accum += relweight*(1.0 - dot)
+            accum += relweight*(1.0 - dot)      
         return accum/N
 
     def calculate_compactness_3d(self, points, pixel_length):   

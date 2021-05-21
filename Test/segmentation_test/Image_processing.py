@@ -92,7 +92,7 @@ class Image_processing:
         depth_sobel = np.uint8(abs_sobel64f)
 
         # Blurring Sobel image
-        kernel_sobel_size=9
+        kernel_sobel_size=7
         depth_sobel_blurred = cv2.blur(depth_sobel, (kernel_sobel_size,kernel_sobel_size))
 
         depth_no_floor=self.remove_floor(depth_sobel_blurred,depth_no_background_median_cropped,border_size)
@@ -276,7 +276,10 @@ def main(mod):
         path_save_roi = os.path.dirname(__file__)
         path_save_roi = os.path.join(path_save_roi, "..", "..","Datasets","rgbd-dataset","captured","captured_1")
         files = ([int(i.split("_")[-2]) for i in os.listdir( path_save_roi) if i.endswith("_crop.png")])
-        counter=max(files)+1
+        if len(files)==0:
+            counter=0
+        else:
+            counter=max(files)+1
         while(1):
             depth=get_depth()
             color=get_video()

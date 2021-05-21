@@ -30,7 +30,7 @@ except:
     data_dir_knowledge = os.path.join(data_dir_grounding,"knowledge")
     data_dir_base_knowledge = os.path.join(data_dir_grounding,"base_knowledge")
     data_dir_images = os.path.join(data_dir_grounding,"..","..","Datasets","rgbd-dataset")
-    data_dir_images_captured = os.path.join(data_dir_images,"captured","captured_1")
+    data_dir_images_captured = os.path.join(data_dir_images,"apple","apple_1")
     data_dir_images = os.path.join(data_dir_images,random.choice([f.name for f in os.scandir(data_dir_images) if f.is_dir() and not f.name.startswith("_")]))
     data_dir_images = os.path.join(data_dir_images,random.choice([f.name for f in os.scandir(data_dir_images) if f.is_dir() and not f.name.startswith("_")]))
 
@@ -289,11 +289,11 @@ class Conseptual_space(Tensor_space):
 
     def save_knowledge(self,label):
         folder = os.path.join(data_dir_knowledge,"general")
-        np.save(self.space["X"],os.path.join(folder,"X.npy"))
-        np.save(self.space["y"],os.path.join(folder,"y.npy"))
+        np.save(os.path.join(folder,"X.npy"),self.space["X"])
+        np.save(os.path.join(folder,"y.npy"),self.space["y"])
 
 
-    def classify(self,features,limit=100):
+    def classify(self,features,limit=4):
         prob=self.clf.predict_proba(np.array([features]))[0]
         index=np.flip(np.argsort(prob))[:limit]
         labels=self.clf.classes_[index]
@@ -303,8 +303,8 @@ class Conseptual_space(Tensor_space):
         return result
 
     def insert(self,label,features):
-        self.space["X"].append(np.array([features]), axis=0)
-        self.space["y"].append(np.array([label]), axis=0)
+        self.space["X"]=np.append(self.space["X"],np.array([features]), axis=0)
+        self.space["y"]=np.append(self.space["y"],np.array([label]), axis=0)
         self.fit()
         self.save_knowledge(label)    
 
@@ -341,23 +341,27 @@ def main(mod,space,captured=False):
     except FileNotFoundError:
         print("{}: No such file or directory".format(data_dir_images))
         os._exit(1)
-    g=Grounding(True)    
-    for filename in files:
-    #filename=random.choice(files)    
-        name="_".join(filename.split("_")[0:-1])
-        depth=get_image(name+"_depthcrop.png",0,captured)
-        img=get_image(name+"_crop.png",1,captured)
-        mask=get_image(name+"_maskcrop.png",0,captured)
-        depth=apply_mask(mask,depth)
-        img=apply_mask(mask,img)
+    g=Grounding(True) 
+    filename=random.choice(files)    
+    name="_".join(filename.split("_")[0:-1])
+    depth=get_image(name+"_depthcrop.png",0,captured)
+    img=get_image(name+"_crop.png",1,captured)
+    mask=get_image(name+"_maskcrop.png",0,captured)
+    depth=apply_mask(mask,depth)
+    img=apply_mask(mask,img)
+    if captured:
+        print("Image: {}/{}".format(data_dir_images_captured.rsplit("/",1)[1],filename)) 
+    else:    
+        print("Image: {}".format(name))   
+    if mod=="classify":
+        print(round_list(g.classify((img,depth),space+"_query")))
+    elif mod=="learning":
         if captured:
-            print("Image: {}".format(filename)) 
-        else:    
-            print("Image: {}".format(name))   
-        if mod=="classify":
-            g.classify((img,depth),space+"_query")
-        elif mod=="learning":    
-            g.learn((img,depth),space+"_training"," ".join(name.split("_")[:-3]))
+            name_obj=" ".join(data_dir_images_captured.rsplit("/",1)[1].split("_")[:-1])
+        else:
+            name_obj=" ".join(name.split("_")[:-3])
+        print(name_obj)
+        print(round_list(g.learn((img,depth),space+"_training",name_obj)[space]))
 
 def learn_features():
     import time
@@ -385,11 +389,12 @@ def learn_features():
     g=Grounding(False)
     stride=10
     start_index=0
-    checkpoint=202
-    end=210
-    with open(path_ds+"/training.txt", "r") as f:
+    checkpoint=-1
+    end=2100
+    with open(os.path.dirname(__file__)+"/training.txt", "r") as f:
         lines_list=f.readlines()
         number_of_object=len(lines_list)
+        dictionary = {}
         for number_line,line in enumerate(lines_list):
             if number_line<=checkpoint:
                 continue
@@ -401,7 +406,8 @@ def learn_features():
             features = line[1].split(";")
             shape,color,texture=features
             path_images = os.path.join(path_ds, name, line[0])
-
+            dictionary[line[0]]=features
+            continue   
             try:
                 images = os.listdir( path_images )
                 images = [i.rsplit("_", 1)[0] for index, i in enumerate(images) if i.endswith("_crop.png") and index%stride==start_index]
@@ -445,6 +451,9 @@ def learn_features():
                 #os._exit(1) #da rimuovere per fare tutte
 
             print("100% \nFinished learn image directory {}/{}: {} at {} in {:.2f}m ".format(number_line,number_of_object,line[0], time.asctime().split(" ")[3], (time.time()-starting_time)/60))   
+        with open(os.path.dirname(__file__)+"/dictionary.pickle","wb") as f:
+            o=pickle.dumps(dictionary)
+            f.write(o)            
 
 def learn_knowledge():
     import ast
@@ -470,6 +479,6 @@ def learn_knowledge():
 
                 
 if __name__=="__main__":
-    main("classify","general",captured=True)
-    #learn_features()
+    main("classify","color",captured=True)
+    learn_features()
     #learn_knowledge()           
