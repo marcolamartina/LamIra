@@ -30,7 +30,7 @@ except:
     data_dir_knowledge = os.path.join(data_dir_grounding,"knowledge")
     data_dir_base_knowledge = os.path.join(data_dir_grounding,"base_knowledge")
     data_dir_images = os.path.join(data_dir_grounding,"..","..","Datasets","rgbd-dataset")
-    data_dir_images_captured = os.path.join(data_dir_images,"apple","apple_1")
+    data_dir_images_captured = os.path.join(data_dir_images,"peach","peach_1")
     data_dir_images = os.path.join(data_dir_images,random.choice([f.name for f in os.scandir(data_dir_images) if f.is_dir() and not f.name.startswith("_")]))
     data_dir_images = os.path.join(data_dir_images,random.choice([f.name for f in os.scandir(data_dir_images) if f.is_dir() and not f.name.startswith("_")]))
 
@@ -98,39 +98,49 @@ class Grounding:
             return name
 
     def create_base_knowledge(self):
-        X=[]
-        y=[]
+        X={"general":[], "color":[], "shape":[],"texture":[]}
+        y={"general":[], "color":[], "shape":[],"texture":[]}
         data_dir = data_dir_base_knowledge+"/Data"
-        exclusion_list=["binder","camera","cell_phone"]
+        exclusion_list=["binder","camera","cell phone","dry battery"]
         file_list=glob(data_dir+'/**', recursive=True)
         number_of_files=len(file_list)
-        for j,filename in enumerate(file_list):
-            if os.path.isfile(filename) and filename.endswith(".txt"):
-                print("{:.2f}%".format(j*100/number_of_files))
-                name=" ".join(filename.split("_")[:-3]).rsplit("/", 1)[1]
-                if name in exclusion_list:
-                    continue
-                name=self.translate(name)
-                #folder=filename.split("/")[-2]
-                with open(filename, "r") as f:
-                    features=[]
-                    try:
-                        lines=f.readlines()
-                        for line in lines:
-                            features.append(ast.literal_eval(line))
-                        if len(features)==3:        
-                            color,shape,texture=features
-                            color=normalize_color(color)
-                            X.append(color+shape+texture)  
-                            y.append(name)
-                    except:
-                        print("Error in {}".format(filename))
-                        print(lines)
+        with open(data_dir_grounding+"/dictionary.pickle","rb") as f:
+            dictionary=pickle.load(f)
+            for j,filename in enumerate(file_list):
+                if os.path.isfile(filename) and filename.endswith(".txt"):
+                    print("{:.2f}%".format(j*100/number_of_files))
+                    name=" ".join(filename.split("_")[:-3]).rsplit("/", 1)[1]
+                    if name in exclusion_list:
                         continue
-        y=np.array(y)
-        X=np.array(X)
-        np.save(data_dir_base_knowledge+"/X.npy",X)
-        np.save(data_dir_base_knowledge+"/y.npy",y)                
+                    name=self.translate(name)
+                    folder=filename.split("/")[-2]
+                    with open(filename, "r") as f:
+                        features=[]
+                        try:
+                            lines=f.readlines()
+                            for line in lines:
+                                features.append(ast.literal_eval(line))
+                            if len(features)==3:        
+                                color,shape,texture=features
+                                shape_name,color_name,texture_name=dictionary[folder]   
+                                color=normalize_color(color)
+                                general=color+shape+texture
+                                general_name=name
+                                for k,l in X.items():
+                                    l.append(locals()[k])
+                                for k,l in y.items():
+                                    l.append(locals()[k+"_name"])    
+                        except:
+                            print("Error in {}".format(filename))
+                            print(lines)
+                            continue
+            for k,l in X.items():
+                X[k]=np.array(l)
+                np.save(data_dir_base_knowledge+"/X_"+k+".npy",X[k])
+            for k,l in y.items():
+                y[k]=np.array(l)   
+                np.save(data_dir_base_knowledge+"/y_"+k+".npy",y[k])       
+                           
         
     def classify(self, scan, intent):
         space=intent[:-6]
@@ -201,11 +211,12 @@ class Grounding:
         for space_label,space in self.spaces.spaces.items():
             folder = os.path.join(data_dir_knowledge,space_label)
             knowledge_files = os.listdir( folder )
-            if space_label=="general":
-                if "X.npy" in knowledge_files:
-                    space.space["X"]=np.load(os.path.join(folder,"X.npy"))
-                if "y.npy" in knowledge_files:
-                    space.space["y"]=np.load(os.path.join(folder,"y.npy"))         
+            if True or space_label=="general":
+                if "X_"+space_label+".npy" in knowledge_files:
+                    
+                    space.space["X"]=np.load(os.path.join(folder,"X_"+space_label+".npy"))
+                if "y_"+space_label+".npy" in knowledge_files:
+                    space.space["y"]=np.load(os.path.join(folder,"y_"+space_label+".npy"))         
                 space.fit()
             else:    
                 for knowledge_file in knowledge_files:
@@ -231,8 +242,9 @@ class Grounding:
 
 class Tensor_spaces:
     def __init__(self, names):
-        self.spaces={l:Tensor_space(l) for l in names if l!="general"}
-        self.spaces["general"]=Conseptual_space("general") 
+        #self.spaces={l:Tensor_space(l) for l in names if l!="general"}
+        #self.spaces["general"]=Conseptual_space("general")
+        self.spaces={l:Conseptual_space(l) for l in names} 
 
     def insert(self,space_label,label,point):
        self.spaces[space_label].insert(label,point) 
@@ -288,9 +300,9 @@ class Conseptual_space(Tensor_space):
         super().__init__(space_label)
 
     def save_knowledge(self,label):
-        folder = os.path.join(data_dir_knowledge,"general")
-        np.save(os.path.join(folder,"X.npy"),self.space["X"])
-        np.save(os.path.join(folder,"y.npy"),self.space["y"])
+        folder = os.path.join(data_dir_knowledge,self.space_label)
+        np.save(os.path.join(folder,"X_"+self.space_label+".npy"),self.space["X"])
+        np.save(os.path.join(folder,"y_"+self.space_label+".npy"),self.space["y"])
 
 
     def classify(self,features,limit=4):
@@ -341,7 +353,7 @@ def main(mod,space,captured=False):
     except FileNotFoundError:
         print("{}: No such file or directory".format(data_dir_images))
         os._exit(1)
-    g=Grounding(True) 
+    g=Grounding(False)
     filename=random.choice(files)    
     name="_".join(filename.split("_")[0:-1])
     depth=get_image(name+"_depthcrop.png",0,captured)
@@ -354,7 +366,8 @@ def main(mod,space,captured=False):
     else:    
         print("Image: {}".format(name))   
     if mod=="classify":
-        print(round_list(g.classify((img,depth),space+"_query")))
+        for l in ["color","shape","texture","general"]:
+            print(l,round_list(g.classify((img,depth),l+"_query")))
     elif mod=="learning":
         if captured:
             name_obj=" ".join(data_dir_images_captured.rsplit("/",1)[1].split("_")[:-1])
@@ -450,7 +463,7 @@ def learn_features():
                 
                 #os._exit(1) #da rimuovere per fare tutte
 
-            print("100% \nFinished learn image directory {}/{}: {} at {} in {:.2f}m ".format(number_line,number_of_object,line[0], time.asctime().split(" ")[3], (time.time()-starting_time)/60))   
+            print("100%\nFinished learn image directory {}/{}: {} at {} in {:.2f}m ".format(number_line,number_of_object,line[0], time.asctime().split(" ")[3], (time.time()-starting_time)/60))   
         with open(os.path.dirname(__file__)+"/dictionary.pickle","wb") as f:
             o=pickle.dumps(dictionary)
             f.write(o)            
@@ -479,6 +492,6 @@ def learn_knowledge():
 
                 
 if __name__=="__main__":
-    main("classify","color",captured=True)
-    learn_features()
+    main("classify","shape",captured=True)
+    #learn_features()
     #learn_knowledge()           

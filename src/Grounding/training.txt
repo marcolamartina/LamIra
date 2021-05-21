@@ -106,7 +106,7 @@ onion_4:sfera;giallo;liscio
 onion_5:sfera;rosso;liscio
 onion_6:sfera;rosso;liscio
 peach_1:sfera;rosso-bordeaux;liscio
-peach_2:toroide;rosso-giallo;liscio
+peach_2:sfera;rosso-giallo;liscio
 peach_3:sfera;arancione;liscio
 pear_1:cono;verde;liscio
 pear_2:cono;verde-marrone chiaro;liscio
