@@ -61,7 +61,7 @@ def dbscan(points, distance_measure=euclidean_distance, min_samples_frac=100, ep
     else:    
         return output  
 
-def kmeans(points, n_clusters=None, dimensions=True):
+def kmeans(points, n_clusters=None, dimensions=True,exclusion_percentage=0.2):
     algorithm_type='k-means++'
     if n_clusters==None:
         max_n_clusters=6
@@ -91,6 +91,9 @@ def kmeans(points, n_clusters=None, dimensions=True):
         labels[l]+=1
     centroids=[(v.tolist(),labels[i]/len(points)) for i,v in enumerate(kmeans.cluster_centers_)]
     centroids.sort(key=lambda x:x[1],reverse=True)
+    if centroids[2][1]<exclusion_percentage:
+        centroids[2]=centroids[1]
+        centroids[1]=centroids[0]
     if not dimensions:
         centroids=[c[0] for c in centroids]
     return centroids

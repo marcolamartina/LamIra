@@ -1,5 +1,6 @@
 import random
 import os
+from types import CodeType
 import numpy as np
 import cv2
 import matplotlib.pyplot as plt
@@ -11,12 +12,12 @@ from sklearn.ensemble import RandomForestClassifier
 
 if __package__:
     test=False
-    from Grounding.Color_extractor import Color_extractor, cielab_to_cv2lab, cv2lab_to_cielab, cielab_to_rgb, normalize_color
+    from Grounding.Color_extractor import Color_extractor, cielab_to_cv2lab, cv2lab_to_cielab, cielab_to_rgb, normalize_color, print_colors
     from Grounding.Shape_extractor import Shape_extractor
     from Grounding.Texture_extractor import Texture_extractor
 else:
     test=True
-    from Color_extractor import Color_extractor, cielab_to_cv2lab, cv2lab_to_cielab, cielab_to_rgb, normalize_color
+    from Color_extractor import Color_extractor, cielab_to_cv2lab, cv2lab_to_cielab, cielab_to_rgb, normalize_color, print_colors
     from Shape_extractor import Shape_extractor
     from Texture_extractor import Texture_extractor 
 
@@ -30,7 +31,9 @@ except:
     data_dir_knowledge = os.path.join(data_dir_grounding,"knowledge")
     data_dir_base_knowledge = os.path.join(data_dir_grounding,"base_knowledge")
     data_dir_images = os.path.join(data_dir_grounding,"..","..","Datasets","rgbd-dataset")
-    data_dir_images_captured = os.path.join(data_dir_images,"peach","peach_1")
+    data_dir_images_captured = os.path.join(data_dir_images)
+    data_dir_images_captured = os.path.join(data_dir_images_captured,random.choice([f.name for f in os.scandir(data_dir_images_captured) if f.is_dir() and not f.name.startswith("_")]))
+    data_dir_images_captured = os.path.join(data_dir_images_captured,random.choice([f.name for f in os.scandir(data_dir_images_captured) if f.is_dir() and not f.name.startswith("_")]))
     data_dir_images = os.path.join(data_dir_images,random.choice([f.name for f in os.scandir(data_dir_images) if f.is_dir() and not f.name.startswith("_")]))
     data_dir_images = os.path.join(data_dir_images,random.choice([f.name for f in os.scandir(data_dir_images) if f.is_dir() and not f.name.startswith("_")]))
 
@@ -97,7 +100,7 @@ class Grounding:
         except:
             return name
 
-    def create_base_knowledge(self):
+    def create_base_knowledge(self,overwrite=False):
         X={"general":[], "color":[], "shape":[],"texture":[]}
         y={"general":[], "color":[], "shape":[],"texture":[]}
         data_dir = data_dir_base_knowledge+"/Data"
@@ -137,9 +140,13 @@ class Grounding:
             for k,l in X.items():
                 X[k]=np.array(l)
                 np.save(data_dir_base_knowledge+"/X_"+k+".npy",X[k])
+                if overwrite:
+                    np.save(data_dir_knowledge+"/"+k+"/X_"+k+".npy",X[k])
             for k,l in y.items():
                 y[k]=np.array(l)   
-                np.save(data_dir_base_knowledge+"/y_"+k+".npy",y[k])       
+                np.save(data_dir_base_knowledge+"/y_"+k+".npy",y[k])
+                if overwrite:
+                    np.save(data_dir_knowledge+"/"+k+"/y_"+k+".npy",y[k])       
                            
         
     def classify(self, scan, intent):
@@ -149,7 +156,7 @@ class Grounding:
         features=self.extract(scan,space)
         labels=self.classify_features(features,space)
         if self.verbose and space=="color" and test:
-            self.print_colors(features['color'])         
+            print_colors(features['color'])         
         return labels
 
     def extract_general_features(self,features):
@@ -224,20 +231,7 @@ class Grounding:
                         path = os.path.join(folder,knowledge_file)
                         knowledge_name = knowledge_file[:-7]
                         with open(path, "rb") as f:
-                            space.space[knowledge_name]=pickle.loads(f.read())    
-            
-
-    def print_colors(self,color_list):
-        color_matrix=None
-        for c in [color_list[i:i + 3] for i in range(0, len(color_list), 3)]:
-            color=cielab_to_cv2lab(c)
-            if color_matrix is not None:
-                color_matrix=np.concatenate((color_matrix,np.full((20,20,3),np.array(color))),axis=0)
-            else:
-                color_matrix=np.full((20,20,3),np.array(color))   
-        plt.figure(num="Colors")
-        plt.imshow(cv2.cvtColor(color_matrix.astype(np.uint8), cv2.COLOR_LAB2RGB))
-        plt.show()    
+                            space.space[knowledge_name]=pickle.loads(f.read())       
 
 
 class Tensor_spaces:
@@ -376,6 +370,20 @@ def main(mod,space,captured=False):
         print(name_obj)
         print(round_list(g.learn((img,depth),space+"_training",name_obj)[space]))
 
+def create_dictionary():
+    with open(data_dir_grounding+"/training.txt", "r") as f:
+        lines_list=f.readlines()
+        dictionary = {}
+        for line in lines_list: 
+            line=line.strip()
+            line=line.split(":")
+            features = line[1].split(";")
+            dictionary[line[0]]=features
+              
+    with open(data_dir_grounding+"/dictionary.pickle","wb") as f:
+            o=pickle.dumps(dictionary)
+            f.write(o)  
+
 def learn_features():
     import time
 
@@ -407,7 +415,6 @@ def learn_features():
     with open(os.path.dirname(__file__)+"/training.txt", "r") as f:
         lines_list=f.readlines()
         number_of_object=len(lines_list)
-        dictionary = {}
         for number_line,line in enumerate(lines_list):
             if number_line<=checkpoint:
                 continue
@@ -419,8 +426,6 @@ def learn_features():
             features = line[1].split(";")
             shape,color,texture=features
             path_images = os.path.join(path_ds, name, line[0])
-            dictionary[line[0]]=features
-            continue   
             try:
                 images = os.listdir( path_images )
                 images = [i.rsplit("_", 1)[0] for index, i in enumerate(images) if i.endswith("_crop.png") and index%stride==start_index]
@@ -463,10 +468,7 @@ def learn_features():
                 
                 #os._exit(1) #da rimuovere per fare tutte
 
-            print("100%\nFinished learn image directory {}/{}: {} at {} in {:.2f}m ".format(number_line,number_of_object,line[0], time.asctime().split(" ")[3], (time.time()-starting_time)/60))   
-        with open(os.path.dirname(__file__)+"/dictionary.pickle","wb") as f:
-            o=pickle.dumps(dictionary)
-            f.write(o)            
+            print("100%\nFinished learn image directory {}/{}: {} at {} in {:.2f}m ".format(number_line,number_of_object,line[0], time.asctime().split(" ")[3], (time.time()-starting_time)/60))              
 
 def learn_knowledge():
     import ast
@@ -490,8 +492,83 @@ def learn_knowledge():
                     continue    
                 g.spaces.insert("general",name,features_label)
 
+def learn_color():
+    import time
+
+    def get_image(filename,color=True, image_path=data_dir_images ):
+        path=os.path.join(image_path,filename)
+        if not color:
+            im = cv2.imread(path,0)
+        else: 
+            im = cv2.imread(path)   
+        return im 
+
+    def apply_mask(mask,image):
+        i=image.copy()
+        if len(image.shape)==2:
+            i[mask == 0]=0
+        else:
+            i[mask == 0]=np.array([0,0,0])    
+        return i
+   
+    path = os.path.join(data_dir_grounding,"..","..","Datasets")
+    path_ds = os.path.join(path,"rgbd-dataset")
+    #path_ds = os.path.join(data_dir_grounding,"..","..","Datasets","rgbd-dataset")
+    path_descriptors = os.path.join(data_dir_grounding,"base_knowledge","Data")
+    g=Grounding(False)
+    stride=10
+    start_index=0
+    checkpoint=-1
+    end=10000
+    with open(os.path.dirname(__file__)+"/training.txt", "r") as f:
+        lines_list=f.readlines()
+        number_of_object=len(lines_list)
+        for number_line,line in enumerate(lines_list):
+            if number_line<=checkpoint:
+                continue
+            if number_line>=end:
+                break    
+            line=line.strip()
+            line=line.split(":")
+            name = line[0].rsplit("_", 1)[0]
+            #features = line[1].split(";")
+            #shape,color,texture=features
+            path_images = os.path.join(path_ds, name, line[0])
+            try:
+                images = os.listdir( path_images )
+                images = [i.rsplit("_", 1)[0] for index, i in enumerate(images) if i.endswith("_crop.png") and index%stride==start_index]
+                images = sorted(images)
+            except FileNotFoundError:
+                print("{}: No such file or directory".format(path_images))
+                os._exit(1)  
+            l=len(images)-1
+            starting_time = time.time()
+            print("Starting learn image directory: {} at {}".format(line[0], time.asctime().split(" ")[3]))  
+            for index,i in enumerate(images):
+                depth=get_image(i+"_depthcrop.png",0, image_path=path_images)
+                img=get_image(i+"_crop.png", image_path=path_images)
+                mask=get_image(i+"_maskcrop.png",0, image_path=path_images)
+                depth=apply_mask(mask,depth)
+                img=apply_mask(mask,img)
+                print("{:.2f}%".format(index*100/l)) 
+                descr_path=os.path.join(path_descriptors, name, line[0])
+                try:
+                    with open(descr_path+"/"+i+".txt", "r") as f:
+                        lines=f.readlines()
+                        old_color,old_shape,old_texture=lines
+                    color_descriptor=g.color_extractor.extract(img)
+                    with open(descr_path+"/"+i+".txt", "w+") as f:
+                        f.writelines(str(color_descriptor)+"\n")
+                        f.writelines(old_shape)
+                        f.writelines(old_texture)
+                except:
+                    continue
+                #os._exit(1) #da rimuovere per fare tutte
+
+            print("100%\nFinished learn image directory {}/{}: {} at {} in {:.2f}m ".format(number_line,number_of_object,line[0], time.asctime().split(" ")[3], (time.time()-starting_time)/60))              
+
+
                 
 if __name__=="__main__":
-    main("classify","shape",captured=True)
-    #learn_features()
+    main("classify","general",captured=True)
     #learn_knowledge()           
