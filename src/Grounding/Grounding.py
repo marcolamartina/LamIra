@@ -31,9 +31,9 @@ except:
     data_dir_knowledge = os.path.join(data_dir_grounding,"knowledge")
     data_dir_base_knowledge = os.path.join(data_dir_grounding,"base_knowledge")
     data_dir_images = os.path.join(data_dir_grounding,"..","..","Datasets","rgbd-dataset")
-    data_dir_images_captured = os.path.join(data_dir_images)
-    data_dir_images_captured = os.path.join(data_dir_images_captured,random.choice([f.name for f in os.scandir(data_dir_images_captured) if f.is_dir() and not f.name.startswith("_")]))
-    data_dir_images_captured = os.path.join(data_dir_images_captured,random.choice([f.name for f in os.scandir(data_dir_images_captured) if f.is_dir() and not f.name.startswith("_")]))
+    data_dir_images_captured = os.path.join(data_dir_images, "captured")
+    #data_dir_images_captured = os.path.join(data_dir_images_captured,random.choice([f.name for f in os.scandir(data_dir_images_captured) if f.is_dir() and not f.name.startswith("_")]))
+    #data_dir_images_captured = os.path.join(data_dir_images_captured,random.choice([f.name for f in os.scandir(data_dir_images_captured) if f.is_dir() and not f.name.startswith("_")]))
     data_dir_images = os.path.join(data_dir_images,random.choice([f.name for f in os.scandir(data_dir_images) if f.is_dir() and not f.name.startswith("_")]))
     data_dir_images = os.path.join(data_dir_images,random.choice([f.name for f in os.scandir(data_dir_images) if f.is_dir() and not f.name.startswith("_")]))
 
@@ -244,54 +244,10 @@ class Tensor_spaces:
        self.spaces[space_label].insert(label,point) 
    
 
-class Tensor_space:
+class Conseptual_space():
     def __init__(self,space_label):
         self.space={}
         self.space_label=space_label
-
-    def save_knowledge(self,label):
-        with open(os.path.join(data_dir_knowledge,self.space_label,label+".pickle"), "wb") as f:
-            s = pickle.dumps(self.space[label])
-            f.write(s)
-
-    def classify(self,feature,limit=4):
-        distances=[]
-        for label,tree in self.space.items():
-            d=self.distance(feature,tree)
-            if d==0:
-                return [(label,d)]
-            distances.append((label,d)) 
-        return sorted(distances,key=lambda x:x[1])[:limit]    
-
-    def insert(self,label,point):
-        if label in self.space.keys(): # label just learned
-            points=self.space[label].get_arrays()[0]
-            np.append(points,np.array([point]))
-            self.space[label]=KDTree(points)
-        else: # new label
-            self.space[label]=KDTree(np.array([point]))
-        self.save_knowledge(label)    
-
-    def in_ellipsoid(self, point, ellipsoid, centroid):
-        if 0 in ellipsoid:
-            return False
-        return (np.square(point-centroid)/np.square(ellipsoid)).sum()<1        
-
-    def distance(self,feature,tree):
-        points=np.array(tree.get_arrays()[0])
-        mins=points.min(axis=0)
-        maxes=points.max(axis=0)
-        centroid=points.mean(axis=0)
-        ellipsoid = (maxes - mins)/2
-        if self.in_ellipsoid(feature, ellipsoid, centroid):
-            return 0
-        dist, _ = tree.query(np.array([feature]), k=1)
-        return dist[0][0]
-
-
-class Conseptual_space(Tensor_space):
-    def __init__(self,space_label):
-        super().__init__(space_label)
 
     def save_knowledge(self,label):
         folder = os.path.join(data_dir_knowledge,self.space_label)
@@ -350,8 +306,8 @@ def main(mod,space,captured=False):
     g=Grounding(False)
 
     #If you want to change and update base knowledge files
-    create_dictionary()
-    g.create_base_knowledge(overwrite=True)
+    #create_dictionary()
+    #g.create_base_knowledge(overwrite=True)
 
     filename=random.choice(files)    
     name="_".join(filename.split("_")[0:-1])
@@ -575,5 +531,8 @@ def learn_color():
 
                 
 if __name__=="__main__":
-    main("classify","general",captured=True)
+    for _ in range(10):
+        data_dir_images_captured = os.path.join(data_dir_images_captured,random.choice([f.name for f in os.scandir(data_dir_images_captured) if f.is_dir() and not f.name.startswith("_")]))
+        main("classify","general",captured=True)
+        data_dir_images_captured = os.path.join(data_dir_images_captured, "..")
     #learn_knowledge()           

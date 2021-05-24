@@ -64,6 +64,8 @@ class Text_production:
             l="la forma"
         elif "texture" in intent_label:
             l="la tessitura"
+        else:
+            l="l'oggetto"    
         outputs=["Ho appena imparato","Ho imparato","Ho appreso"]
         output=random.choice(outputs) 
         output="{} {} {}".format(output,l,subject)
@@ -79,13 +81,13 @@ class Text_production:
 
 class Predictions():
     def __init__(self,predictions):
-        self.similarity_threshold=0.2
+        self.similarity_threshold=0.3
         self.labels,self.confidences=zip(*predictions)
         self.__set_predictions(predictions)        
 
     def __set_predictions(self,predictions):
         #couples answer_type-threshold
-        prediction_types=[("sure_answer",0.9),("unsure_answer",0.7),("dubious_answer",0.5),("cannot_answer",0)] 
+        prediction_types=[("sure_answer",0.8),("unsure_answer",0.6),("dubious_answer",0.4),("cannot_answer",0)] 
 
         #list of possible predictions sorted by confidence
         self.predictions=sorted([Prediction(l,c) for (l,c) in predictions],key=lambda x: x.confidence,reverse=True) #
@@ -99,7 +101,6 @@ class Predictions():
 
         #list of best predictions
         self.best_predictions = [p for p in self.predictions if self.best_prediction.confidence-p.confidence<self.similarity_threshold]  
-        print([str(i.confidence) for i in self.best_predictions])
         #change prediction type if there aren't similar labels
         if self.prediction_type=="dubious_answer" and len(self.best_predictions)<2:
             self.prediction_type="cannot_answer"         

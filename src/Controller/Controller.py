@@ -69,7 +69,8 @@ class Controller:
                 text=self.text_production.to_text_predictions(best_intent,predictions)
                 self.say_text(text)
             except:
-                self.log(traceback.format_stack())
+                raise
+                self.log(sys.exc_info()[1])
                 self.say("error")
                 
 
@@ -100,25 +101,40 @@ class Controller:
             rois=self.kinect.get_image_roi()
             roi=max(rois,key=lambda x:np.count_nonzero(x[1]))
 
-            label_confirmed=False
+            label_confirmed=0
             while not label_confirmed:
                 label=self.get_label_input(best_intent)
                 confirm_response=self.get_input("confirm_label","Vuoi confermare {}?".format(label))
                 label_confirmed=self.verify_confirm(confirm_response)
+            if label_confirmed==2:
+                continue
+
             try:    
                 self.grounding.learn(roi,best_intent,label)
                 text=self.text_production.to_text_subject(best_intent,label)
                 self.say_text(text)
             except:
-                self.log(traceback.format_stack())
+                raise
+                self.log(sys.exc_info()[1])
                 self.say("error")
 
+
     def verify_confirm(self,confirm_response):
+        """Accepts a text and return an integer that can be:
+        - 0 if the response is negative
+        - 1 if the response is affermative
+        - 2 for cancel the operation 
+
+        """
         negative=["no","negativo"]
-        for n in negative:
-            if n in confirm_response.lower().split(" "):
-                return False
-        return True        
+        cancel=["annulla","esci","niente"]
+        for n in confirm_response.lower().split(" "):
+            if n in negative:
+                return 0
+            elif n in cancel:
+                return 2    
+        return 1
+               
 
     def thinking(self):
         self.play_video("thinking")
@@ -210,5 +226,5 @@ class Controller:
         os._exit(1)
 
     def log(self,stacktrace):
-        print(stacktrace, file = sys.stdout)
+        print(stacktrace, file = sys.stderr)
 
