@@ -36,7 +36,7 @@ cell_phone_3:parallelepipedo;grigio;liscio
 cell_phone_4:parallelepipedo;nero-grigio;liscio
 cell_phone_5:parallelepipedo;nero-grigio;liscio
 cereal_box_1:parallelepipedo;bianco-arancione;liscio
-cereal_box_2:parallelepipedo;marrone-bianco;liscio
+cereal_box_2:parallelepipedo;bianco-marrone;liscio
 cereal_box_3:parallelepipedo;bianco-marrone;liscio
 cereal_box_4:parallelepipedo;bianco-blu;liscio
 cereal_box_5:parallelepipedo;bianco-rosso;liscio
