@@ -28,7 +28,13 @@ class Text_production:
 
     def set_attributes_subject(self,intent_label,subject):
         self.intent_label=intent_label
-        self.subject=subject    
+        self.subject=subject
+
+    def split_label(self,label):
+        elements=label.split("-")
+        if len(elements)<=1:
+            return label
+        return " e ".join([", ".join(elements[:-1]),elements[-1]])
         
     def to_text_predictions(self,intent_label,predictions):
         self.set_attributes_predictions(intent_label,predictions)
@@ -39,12 +45,12 @@ class Text_production:
                 outputs.append(line.strip())
         output=random.choice(outputs)
         if not self.predictions.prediction_type=="cannot_answer":
-            output=output.replace("{label}",self.predictions.best_prediction.label.label)
+            output=output.replace("{label}",self.split_label(self.predictions.best_prediction.label.label))
             output=output.replace("{art_def}",self.predictions.best_prediction.label.article_definite) 
             output=output.replace("{art_indef}",self.predictions.best_prediction.label.article_indefinite)
             if self.predictions.prediction_type=="dubious_answer":
-                output=output.replace("{label_a}",self.predictions.best_predictions[1].label.label) 
-                output=output.replace("{art_def_a}",self.predictions.best_predictions[1].label.article_definite) 
+                output=output.replace("{label_a}",self.split_label(self.predictions.best_predictions[1].label.label)) 
+                output=output.replace("{art_def_a}",self.predictions.best_predictions[1].label.article_definite)
                 output=output.replace("{art_indef_a}",self.predictions.best_predictions[1].label.article_indefinite)
         if self.verbose:
             print("Best predictions: {}".format([(p.label.label,round(p.confidence,4)) for p in self.predictions.best_predictions]))
@@ -93,7 +99,7 @@ class Predictions():
 
         #list of best predictions
         self.best_predictions = [p for p in self.predictions if self.best_prediction.confidence-p.confidence<self.similarity_threshold]  
-
+        print([str(i.confidence) for i in self.best_predictions])
         #change prediction type if there aren't similar labels
         if self.prediction_type=="dubious_answer" and len(self.best_predictions)<2:
             self.prediction_type="cannot_answer"         
@@ -192,7 +198,8 @@ def main():
   predictions=[
       ("general_query",[("palla da tennis",0.83),("uovo",0.86),("arancia",0.81)]),
       ("shape_query",[("rettangolo",0.9),("cerchio",0.1),("trapezio",0.51)]),
-      ("color_query",[("rosso",0.24),("viola",0.86),("giallo",0.15)]),
+      ("color_query",[("rosso-bianco",0.24),("viola-giallo-fucsia",0.86),("giallo",0.15)]),
+      ("color_query",[("blu-bianco",0.51),("viola-nero-fucsia",0.48),("giallo",0.01)]),
       ("texture_query",[("liscio",0.03),("ruvido",0.26),("setoso",0.31)])
       ]
 
