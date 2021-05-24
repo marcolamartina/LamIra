@@ -348,6 +348,11 @@ def main(mod,space,captured=False):
         print("{}: No such file or directory".format(data_dir_images))
         os._exit(1)
     g=Grounding(False)
+
+    #If you want to change and update base knowledge files
+    create_dictionary()
+    g.create_base_knowledge(overwrite=True)
+
     filename=random.choice(files)    
     name="_".join(filename.split("_")[0:-1])
     depth=get_image(name+"_depthcrop.png",0,captured)

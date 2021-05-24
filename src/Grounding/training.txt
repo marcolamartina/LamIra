@@ -73,7 +73,7 @@ food_cup_4:cilindro;bianco;liscio
 food_cup_5:cilindro;bianco;ruvido
 food_jar_1:cilindro;blu;liscio
 food_jar_2:cilindro;arancione;liscio
-food_jar_3:cilindro;rosso-bianco;liscio
+food_jar_3:cilindro;bianco-rosso;liscio
 food_jar_5:cilindro;giallo-blu;liscio
 food_jar_6:cilindro;grigio-blu;liscio
 garlic_1:sfera;bianco;liscio
@@ -121,12 +121,11 @@ tomato_6:sfera;rosso;liscio
 tomato_7:sfera;rosso;liscio
 tomato_8:sfera;arancione;liscio
 glue_stick_2:cilindro;blu-bianco;liscio
-glue_stick_3:cilindro;blu-rosso;liscio
 glue_stick_4:cilindro;giallo-rosso;liscio
 glue_stick_5:cilindro;bianco-blu;liscio
 glue_stick_6:cilindro;bianco-rosso;liscio
 food_can_1:cilindro;bianco-nero;liscio
-food_can_2:cilindro;rosso-bianco;liscio
+food_can_2:cilindro;bianco-rosso;liscio
 food_can_3:cilindro;bianco-rosso;liscio
 food_can_4:cilindro;bianco-rosso;liscio
 food_can_5:cilindro;bianco-rosso;liscio
@@ -181,7 +180,6 @@ sponge_12:sfera;blu;ruvido
 toothbrush_2:cilindro;verde;liscio
 toothbrush_3:cilindro;celeste;liscio
 toothbrush_4:cilindro;fucsia;liscio
-toothpaste_1:cilindro;blu-rosso;liscio
 toothpaste_2:cilindro;blu;liscio
 toothpaste_3:cilindro;bianco-blu;liscio
 toothpaste_4:cilindro;bianco-rosso;liscio
