@@ -13,11 +13,13 @@ class Video_player:
         if platform.system()=="Darwin":
             self.timestep=1
         else:
-            self.timestep=10    
+            self.timestep=10
+            
 
     def run(self):
         cv2.namedWindow(self.name)
         cv2.moveWindow(self.name,0,0)
+        
         while True:
         #This is to check whether to break the first loop
             with self.lock:

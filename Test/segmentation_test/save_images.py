@@ -201,15 +201,18 @@ def batch_mode():
     video=True
     path=os.path.dirname(__file__)
     path='/home/davide/LamIra/Test/segmentation_test'
-
+    i=1
     # Defining starting element
     element = cv2.getStructuringElement(cv2.MORPH_CROSS,(3,3))
-    depth_file=path+"/test/depth_"+str(i)
+    depth_file=path+"/test/depth_"+str(i) #insert right number in i
 
     # Take depth image
     if from_kinect:
         dep_original=get_depth()
         v=get_video()
+        cv2.imwrite(path+"/test/rgb_obj_4.png", v)
+        cv2.imwrite(path+"/test/depth_obj_4.png", dep_original)
+        exit(0)
     else:
         dep_original=cv2.imread(depth_file+"_starting.png", 0)
         v=None
@@ -239,7 +242,7 @@ def batch_mode():
     if video:
         v_grey = cv2.cvtColor(v, cv2.COLOR_BGR2GRAY)
         v_edge=cv2.Canny(v_grey,70,90, apertureSize = 3)
-        rgb_file=path+"/test/rgb_"+str(i)
+        rgb_file=path+"/test/rgb_"+str(i) #insert right number in i
 
 
     # Save interediet file
@@ -299,5 +302,5 @@ def batch_mode():
 
 
 if __name__=="__main__":
-    live_mode()
-    #batch_mode()    
+    #live_mode()
+    batch_mode()    

@@ -13,7 +13,7 @@ import numpy as np
 
 
 class Controller:
-    def __init__(self, newstdin=sys.stdin, close=None, verbose=False, show_assistent=True, play_audio=True, microphone=False, language="it-IT",device_type="cpu", video_id=None, lock=None, videos=None, default=None, name="LamIra", image=None, depth=None, merged=None, roi=None, i_shape=None, d_shape=None, m_shape=None):
+    def __init__(self, newstdin=sys.stdin, close=None, verbose=False, show_assistent=True, play_audio=True, microphone=False, language="it-IT",device_type="cpu", video_id=None, lock=None, videos=None, default=None, name="LamIra", image=None, depth=None, merged=None, roi=None, i_shape=None, d_shape=None, m_shape=None, calibration=None):
         sys.stdin = os.fdopen(newstdin)
         self.name=name
         self.close=close
@@ -34,6 +34,7 @@ class Controller:
         self.lock=lock
         self.videos=videos
         self.default=default
+        self.calibration=calibration
 
         # welcome message
         self.say("welcome")
@@ -44,6 +45,10 @@ class Controller:
                 self.say("quit")
                 return
             query=self.get_input("query")
+            if "calibrazione" in query:
+                self.calibration.value=1
+                self.say_text("Calibrazione completata")
+                continue
             intents,best_intent=self.intent_classification.predict(query)
             if not self.check_intent(best_intent):
                 self.say("cannot_answer")
@@ -80,6 +85,10 @@ class Controller:
                 self.say("quit")
                 return
             request=self.get_input("training_request")
+            if "calibrazione" in request:
+                self.calibration.value=1
+                self.say_text("Calibrazione completata")
+                continue
             intents,best_intent=self.intent_classification.predict(request)
             if not self.check_intent(best_intent):
                 self.say("cannot_answer")

@@ -2,13 +2,16 @@ import numpy as np
 import cv2
 
 class Image_processing:
+    def __init__(self, depth_base):
+        self.depth_base = depth_base
 
     def homography(self,color,depth):
         h=self.get_homography()
         return self.apply_homography(color,h,depth.shape)
 
     def segmentation(self, color, depth):
-        mask=self.get_mask(depth)
+        #mask=self.get_mask(depth) #Adaptive method for find mask
+        mask=self.get_mask_by_sub(depth) #Use a image calibration to get mask
         merged=self.merge(color,mask)
         return merged,mask
 
@@ -58,6 +61,22 @@ class Image_processing:
     def crop(self, image, border_size=10):
         return image[border_size:image.shape[0]-border_size, border_size:image.shape[1]-border_size]
 
+    def border_padding(self, image, border_size=(20,20,20,20)):
+        '''Pad image
+        :image: input image
+        :border_size: (left,right,upper,bottom)
+
+        :returns: image with border padded 
+        '''
+        im=np.copy(image)
+        v=0
+        im[:, 0:border_size[0]]=v #Left
+        im[:, -border_size[1]:]=v #Right
+        im[0:border_size[2], :]=v #Upper
+        im[-border_size[3]:, :]=v #Bottom
+        return im
+
+
     def remove_floor(self, original, output, border_size=10, point=None, tolerance=10):
         if not point:
             point = self.get_point(original,border_size)
@@ -71,6 +90,16 @@ class Image_processing:
         label=labels[point[0],point[1]]
         result[labels==label]=0
         return result
+
+    def get_mask_by_sub(self, depth, threshold=5):
+        d=depth.astype(np.float32)
+        b=self.depth_base.astype(np.float32)
+        mask=np.abs(d-b)
+        mask[mask<=threshold] = 0
+        mask[mask>threshold] = 255
+        mask=mask.astype(np.uint8)
+        mask = self.border_padding(mask)
+        return cv2.medianBlur(mask, 3)
 
     def get_mask(self,depth):
         # Remove background

@@ -125,7 +125,7 @@ class Kinect:
 
     
 class Kinect_video_player:
-    def __init__(self, close, i_arr, d_arr, m_arr, roi, i_shape, d_shape, m_shape, show_video, show_depth, show_merged):
+    def __init__(self, close, i_arr, d_arr, m_arr, roi, i_shape, d_shape, m_shape, show_video, show_depth, show_merged, calibration):
         self.i_arr=i_arr
         self.d_arr=d_arr
         self.m_arr=m_arr
@@ -136,15 +136,14 @@ class Kinect_video_player:
         self.show_video=show_video
         self.show_depth=show_depth
         self.show_merged=show_merged
-        self.image_processing=Image_processing()
         self.close=close
-
         self.ctx, self.dev= self.__init_kinect__()        
         self.set_led('GREEN')
         #self.set_tilt_degs(-22)
         freenect.close_device(self.dev)
         freenect.shutdown(self.ctx)
-
+        self.calibration=calibration
+        self.image_processing=Image_processing(self.get_depth_image())                
 
     def run(self):
         window_y=450
@@ -163,6 +162,10 @@ class Kinect_video_player:
                     if self.close.value==1: 
                         freenect.sync_stop()
                         return
+                    if self.calibration.value==1:
+                        self.image_processing.depth_base=self.get_depth_image()
+                        self.calibration.value=0
+                        continue
                     i = array_to_image(self.i_arr,self.i_shape)
                     d = array_to_image(self.d_arr,self.d_shape)
                     m = array_to_image(self.m_arr,self.m_shape)
