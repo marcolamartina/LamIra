@@ -111,7 +111,7 @@ class Grounding:
             dictionary=pickle.load(f)
             for j,filename in enumerate(file_list):
                 if os.path.isfile(filename) and filename.endswith(".txt"):
-                    print("{:.2f}%".format(j*100/number_of_files))
+                    print("{:.2f}%".format(j*100/number_of_files),end="\r")
                     name=" ".join(filename.split("_")[:-3]).rsplit("/", 1)[1]
                     if name in exclusion_list:
                         continue
@@ -399,7 +399,7 @@ def learn_features():
                 mask=get_image(i+"_maskcrop.png",0, image_path=path_images)
                 depth=apply_mask(mask,depth)
                 img=apply_mask(mask,img)
-                print("{:.2f}%".format(index*100/l))   
+                print("{:.2f}%".format(index*100/l),end="\r")   
                 
                 #g.spaces.insert("general",label,feature)
                 try:
@@ -502,7 +502,7 @@ def learn_color():
                 mask=get_image(i+"_maskcrop.png",0, image_path=path_images)
                 depth=apply_mask(mask,depth)
                 img=apply_mask(mask,img)
-                print("{:.2f}%".format(index*100/l)) 
+                print("{:.2f}%".format(index*100/l),end="\r") 
                 descr_path=os.path.join(path_descriptors, name, line[0])
                 try:
                     with open(descr_path+"/"+i+".txt", "r") as f:
