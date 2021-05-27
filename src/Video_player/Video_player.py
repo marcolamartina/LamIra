@@ -1,5 +1,6 @@
 import cv2
 import os
+import platform
 
 class Video_player:
     def __init__(self, close, video_id, lock, videos, default, name):
@@ -9,6 +10,10 @@ class Video_player:
         self.default=default
         self.name=name
         self.close=close
+        if platform.system()=="Darwin":
+            self.timestep=1
+        else:
+            self.timestep=10    
 
     def run(self):
         cv2.namedWindow(self.name)
@@ -28,7 +33,7 @@ class Video_player:
                 if ret == True and current_id==self.video_id.value: # video not finished and no request for playing
 
                     cv2.imshow(self.name,frame)
-                    cv2.waitKey(1)
+                    cv2.waitKey(self.timestep)
                 # elif ret == False and current_id==video_id.value: # video finished and no request for playing
                     #video_id.value=default
                     #break
