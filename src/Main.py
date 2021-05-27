@@ -14,9 +14,9 @@ verbose=True
 show_video=True
 show_depth=True
 show_merged=True
-show_assistent=False
-play_audio=False
-microphone=False
+show_assistent=True
+play_audio=True
+microphone=True
 device_type="cpu"
 
 def logic_start(close, video_id, lock, videos, default, name, image, depth, merged, roi, i_shape, d_shape, m_shape, newstdin):
@@ -73,19 +73,19 @@ def main():
     newstdin = sys.stdin.fileno()
 
     logic = Process(target=logic_start,args=(close, video_id, lock, videos, default, name, image, depth, merged, roi, i_shape, d_shape, m_shape, newstdin))
+    kinect_video_player = Process(target=kinect_video_player_start,args=(close, image, depth, merged, roi, i_shape, d_shape, m_shape, show_video, show_depth, show_merged))
     if show_assistent:
         video_player = Process(target=video_player_start,args=(close, video_id, lock, videos, default, name))
-    kinect_video_player = Process(target=kinect_video_player_start,args=(close, image, depth, merged, roi, i_shape, d_shape, m_shape, show_video, show_depth, show_merged))
     
     logic.start()
+    kinect_video_player.start()
     if show_assistent:
         video_player.start()
-    kinect_video_player.start()
     
     logic.join()
+    kinect_video_player.join()
     if show_assistent:
-        video_player.join()
-    kinect_video_player.join() 
+        video_player.join() 
 
 if __name__=="__main__":
     main()

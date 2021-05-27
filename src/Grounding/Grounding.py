@@ -218,20 +218,12 @@ class Grounding:
         for space_label,space in self.spaces.spaces.items():
             folder = os.path.join(data_dir_knowledge,space_label)
             knowledge_files = os.listdir( folder )
-            if True or space_label=="general":
-                if "X_"+space_label+".npy" in knowledge_files:
-                    
-                    space.space["X"]=np.load(os.path.join(folder,"X_"+space_label+".npy"))
-                if "y_"+space_label+".npy" in knowledge_files:
-                    space.space["y"]=np.load(os.path.join(folder,"y_"+space_label+".npy"))         
-                space.fit()
-            else:    
-                for knowledge_file in knowledge_files:
-                    if knowledge_file.endswith(".pickle"):    
-                        path = os.path.join(folder,knowledge_file)
-                        knowledge_name = knowledge_file[:-7]
-                        with open(path, "rb") as f:
-                            space.space[knowledge_name]=pickle.loads(f.read())       
+            if "X_"+space_label+".npy" in knowledge_files:
+                
+                space.space["X"]=np.load(os.path.join(folder,"X_"+space_label+".npy"))
+            if "y_"+space_label+".npy" in knowledge_files:
+                space.space["y"]=np.load(os.path.join(folder,"y_"+space_label+".npy"))         
+            space.fit()
 
 
 class Tensor_spaces:
@@ -253,7 +245,6 @@ class Conseptual_space():
         folder = os.path.join(data_dir_knowledge,self.space_label)
         np.save(os.path.join(folder,"X_"+self.space_label+".npy"),self.space["X"])
         np.save(os.path.join(folder,"y_"+self.space_label+".npy"),self.space["y"])
-
 
     def classify(self,features,limit=4):
         prob=self.clf.predict_proba(np.array([features]))[0]
