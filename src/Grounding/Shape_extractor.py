@@ -1,14 +1,10 @@
 import cv2
 import os
-import sys
-from math import copysign, log10
 import numpy as np
-import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 from scipy.spatial import ConvexHull
 import random
 import math
-import itertools
 from sklearn.mixture import GaussianMixture
 from sklearn.neighbors import KDTree
 try:
@@ -428,6 +424,10 @@ class Shape_extractor:
             else:
                 hist[angle]=1
         if show_hist:
+            print("I'm sorry, I'm not ready to plot histogram yet...")
+            '''
+            # At moment pyplot cause problem used with show_assistent=True, will be fixed in future
+            import matplotlib.pyplot as plt
             from collections import Counter
             num = Counter(hist)
             x = []
@@ -439,7 +439,8 @@ class Shape_extractor:
             x_coordinates = np.arange(len(num.keys()))
             plt.bar(x_coordinates,x)
             plt.xticks(x_coordinates,y)
-            plt.show()          
+            plt.show()
+            '''          
         h=[i/l for i in hist.values()]  
         h2=[(k,v) for k,v in hist.items()]       
         return h2,self.entropy(h)

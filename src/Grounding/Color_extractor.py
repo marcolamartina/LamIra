@@ -2,7 +2,6 @@ import cv2
 import math
 import os
 import numpy as np
-import matplotlib.pyplot as plt
 
 if __package__:
     from Grounding.Clustering import kmeans, euclidean_distance
@@ -64,6 +63,11 @@ def normalize_color(color):
     return color_normalized
 
 def print_colors(color_list,img=[]):
+    print("I'm sorry, I'm not ready to plot colors yet...")
+    
+    '''
+    # At moment pyplot cause problem used with show_assistent=True, will be fixed in future
+    import matplotlib.pyplot as plt
     color_matrix=None
     for c in [color_list[i:i + 3] for i in range(0, len(color_list), 3)]:
         color=cielab_to_cv2lab(c)
@@ -78,7 +82,8 @@ def print_colors(color_list,img=[]):
     if len(img)>0:
         plt.subplot(1, 2, 2)
         plt.imshow(cv2.cvtColor(img, cv2.COLOR_BGR2RGB))
-    plt.show()     
+    plt.show()
+    '''
 
 def main():
     
