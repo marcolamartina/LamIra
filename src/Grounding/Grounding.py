@@ -1,10 +1,6 @@
 import random
 import os
-from types import CodeType
 import numpy as np
-import cv2
-import matplotlib.pyplot as plt
-from sklearn.neighbors import KDTree
 import pickle
 import ast
 from glob import glob
@@ -12,12 +8,13 @@ from sklearn.ensemble import RandomForestClassifier
 
 if __package__:
     test=False
-    from Grounding.Color_extractor import Color_extractor, cielab_to_cv2lab, cv2lab_to_cielab, cielab_to_rgb, normalize_color, print_colors
+    from Grounding.Color_extractor import Color_extractor, normalize_color, print_colors
     from Grounding.Shape_extractor import Shape_extractor
     from Grounding.Texture_extractor import Texture_extractor
 else:
     test=True
-    from Color_extractor import Color_extractor, cielab_to_cv2lab, cv2lab_to_cielab, cielab_to_rgb, normalize_color, print_colors
+    import cv2
+    from Color_extractor import Color_extractor, normalize_color, print_colors
     from Shape_extractor import Shape_extractor
     from Texture_extractor import Texture_extractor 
 
@@ -204,7 +201,7 @@ class Grounding:
  
 
     def learn(self, scan, intent, label):
-        color_masked,depth_masked=scan
+        #color_masked,depth_masked=scan
         space_label=intent[:-9]
         features=self.extract(scan,space_label)
         feature=features[space_label]
