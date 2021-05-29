@@ -66,7 +66,6 @@ food_box_5:parallelepipedo;bianco-rosso;liscio
 food_box_6:parallelepipedo;bianco-marrone;liscio
 food_box_7:parallelepipedo;giallo;liscio
 food_box_8:parallelepipedo;blu;liscio
-food_box_9:parallelepipedo;bianco-verde;liscio
 food_box_10:parallelepipedo;blu-verde;liscio
 food_cup_3:cilindro;bianco-arancione;liscio
 food_cup_4:cilindro;bianco;liscio
@@ -120,10 +119,6 @@ tomato_5:sfera;rosso;liscio
 tomato_6:sfera;rosso;liscio
 tomato_7:sfera;rosso;liscio
 tomato_8:sfera;arancione;liscio
-glue_stick_2:cilindro;blu-bianco;liscio
-glue_stick_4:cilindro;giallo-rosso;liscio
-glue_stick_5:cilindro;bianco-blu;liscio
-glue_stick_6:cilindro;bianco-rosso;liscio
 food_can_1:cilindro;bianco-nero;liscio
 food_can_2:cilindro;bianco-rosso;liscio
 food_can_3:cilindro;bianco-rosso;liscio
@@ -148,7 +143,6 @@ marker_8:cilindro;rosso;liscio
 marker_9:cilindro;giallo;liscio
 notebook_1:parallelepipedo;rosso;liscio
 notebook_2:parallelepipedo;giallo;liscio
-notebook_3:parallelepipedo;bianco-verde;liscio
 notebook_4:parallelepipedo;blu;liscio
 plate_1:disco;giallo;liscio
 plate_2:disco;bianco-blu;liscio

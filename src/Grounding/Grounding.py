@@ -5,6 +5,7 @@ import pickle
 import ast
 from glob import glob
 from sklearn.ensemble import RandomForestClassifier
+from shutil import copyfile
 
 if __package__:
     test=False
@@ -54,7 +55,6 @@ class Grounding:
         self.texture_extractor=Texture_extractor()
         self.load_knowledge()
 
-
     def translate(self, name):
         translate_dict={"apple":"mela",
                         "ball":"palla",
@@ -97,11 +97,20 @@ class Grounding:
         except:
             return name
 
+    def reset_knowledge(self):
+        for space_name in ["general", "color", "shape","texture"]:
+            for filename in ["X_"+space_name+".npy","y_"+space_name+".npy"]:
+                src=os.path.join(data_dir_base_knowledge,filename)
+                dst=os.path.join(data_dir_knowledge,space_name,filename)
+                copyfile(src, dst)
+            
+
+
     def create_base_knowledge(self,overwrite=False):
         X={"general":[], "color":[], "shape":[],"texture":[]}
         y={"general":[], "color":[], "shape":[],"texture":[]}
         data_dir = data_dir_base_knowledge+"/Data"
-        exclusion_list=["binder","camera","cell phone","dry battery"]
+        exclusion_list=["binder","camera","cell phone","dry battery","glue stick"]
         file_list=glob(data_dir+'/**', recursive=True)
         number_of_files=len(file_list)
         with open(data_dir_grounding+"/dictionary.pickle","rb") as f:
@@ -294,6 +303,7 @@ def main(mod,space,captured=False):
     g=Grounding(False)
 
     #If you want to change and update base knowledge files
+    #g.reset_knowledge()
     #create_dictionary()
     #g.create_base_knowledge(overwrite=True)
 
@@ -519,7 +529,8 @@ def learn_color():
 
                 
 if __name__=="__main__":
-    for _ in range(10):
+    learn_color()
+    for _ in range(1):
         data_dir_images_captured = os.path.join(data_dir_images_captured,random.choice([f.name for f in os.scandir(data_dir_images_captured) if f.is_dir() and not f.name.startswith("_")]))
         main("classify","general",captured=True)
         data_dir_images_captured = os.path.join(data_dir_images_captured, "..")

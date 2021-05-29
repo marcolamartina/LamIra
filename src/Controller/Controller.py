@@ -49,6 +49,10 @@ class Controller:
                 self.calibration.value=1
                 self.say_text("Calibrazione completata")
                 continue
+            if "reset" in query:
+                self.grounding.reset_knowledge()
+                self.say_text("Reset delle conoscenze completato")
+                continue    
             intents,best_intent=self.intent_classification.predict(query)
             if not self.check_intent(best_intent):
                 self.say("cannot_answer")
@@ -68,13 +72,12 @@ class Controller:
             #image,depth=self.kinect.get_image()
             #merged=self.kinect.get_merged()
             rois=self.kinect.get_image_roi()
-            roi=max(rois,key=lambda x:np.count_nonzero(x[1]))
             try:
+                roi=max(rois,key=lambda x:np.count_nonzero(x[1]))
                 predictions=self.grounding.classify(roi,best_intent)
                 text=self.text_production.to_text_predictions(best_intent,predictions)
                 self.say_text(text)
             except:
-                raise
                 self.log(sys.exc_info()[1])
                 self.say("error")
                 
@@ -89,6 +92,10 @@ class Controller:
                 self.calibration.value=1
                 self.say_text("Calibrazione completata")
                 continue
+            if "reset" in request:
+                self.grounding.reset_knowledge()
+                self.say_text("Reset delle conoscenze completato")
+                continue    
             intents,best_intent=self.intent_classification.predict(request)
             if not self.check_intent(best_intent):
                 self.say("cannot_answer")
@@ -108,7 +115,11 @@ class Controller:
             #image,depth=self.kinect.get_image()
             #merged=self.kinect.get_merged()
             rois=self.kinect.get_image_roi()
-            roi=max(rois,key=lambda x:np.count_nonzero(x[1]))
+            try:
+                roi=max(rois,key=lambda x:np.count_nonzero(x[1]))
+            except:
+                self.log(sys.exc_info()[1])
+                self.say("error")    
 
             label_confirmed=0
             while not label_confirmed:

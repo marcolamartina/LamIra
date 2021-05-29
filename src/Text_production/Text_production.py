@@ -2,11 +2,8 @@ import os
 import random
 import re
 
-if "verbose" not in globals().keys(): 
-    verbose=False
-
-if "local" not in globals().keys(): 
-    local=False    
+local=False
+verbose=False    
 
 try:
     from google.colab import drive

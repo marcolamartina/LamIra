@@ -19,8 +19,8 @@ except:
 
 class Color_extractor:
     def extract(self,image):
-        image = cv2.GaussianBlur(image, (7, 7),0)
-        lab = cv2.cvtColor(image, cv2.COLOR_BGR2LAB)
+        image_blurred = cv2.GaussianBlur(image, (7, 7),0)
+        lab = cv2.cvtColor(image_blurred, cv2.COLOR_BGR2LAB)
         rows,cols,channels = lab.shape
         pixels=[cv2lab_to_cielab(lab[i,j]) for j in range(cols) for i in range(rows) if image[i,j].tolist()!=[0,0,0]]
         centroid_list=kmeans(pixels, n_clusters=3, dimensions=False)
@@ -64,9 +64,8 @@ def normalize_color(color):
 
 def print_colors(color_list,img=[]):
     print("I'm sorry, I'm not ready to plot colors yet...")
-    
-    '''
     # At moment pyplot cause problem used with show_assistent=True, will be fixed in future
+    '''
     import matplotlib.pyplot as plt
     color_matrix=None
     for c in [color_list[i:i + 3] for i in range(0, len(color_list), 3)]:
@@ -86,7 +85,6 @@ def print_colors(color_list,img=[]):
     '''
 
 def main():
-    
     import random
     from Grounding import round_list
 
