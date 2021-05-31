@@ -141,7 +141,6 @@ class Grounding:
                                     l.append(locals()[k+"_name"])    
                         except:
                             print("Error in {}".format(filename))
-                            print(lines)
                             continue
             for k,l in X.items():
                 X[k]=np.array(l)
@@ -271,7 +270,7 @@ class Conseptual_space():
         self.clf = RandomForestClassifier(n_jobs=-1, n_estimators=30)
         self.clf.fit(self.space["X"],self.space["y"])
 
-def main(mod,space,captured=False):
+def main(mod,space,captured=False, create_knowledge=False):
     def get_image(filename,color=True, captured=False ):
         if captured:
             image_path=data_dir_images_captured
@@ -303,9 +302,10 @@ def main(mod,space,captured=False):
     g=Grounding(False)
 
     #If you want to change and update base knowledge files
-    #g.reset_knowledge()
-    #create_dictionary()
-    #g.create_base_knowledge(overwrite=True)
+    if create_knowledge:
+        create_dictionary()
+        g.create_base_knowledge(overwrite=True)
+        exit(0)
 
     filename=random.choice(files)    
     name="_".join(filename.split("_")[0:-1])
@@ -529,9 +529,9 @@ def learn_color():
 
                 
 if __name__=="__main__":
-    learn_color()
+    #learn_color()
     for _ in range(1):
         data_dir_images_captured = os.path.join(data_dir_images_captured,random.choice([f.name for f in os.scandir(data_dir_images_captured) if f.is_dir() and not f.name.startswith("_")]))
-        main("classify","general",captured=True)
+        main("classify","general",captured=True, create_knowledge=True)
         data_dir_images_captured = os.path.join(data_dir_images_captured, "..")
     #learn_knowledge()           

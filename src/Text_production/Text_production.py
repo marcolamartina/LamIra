@@ -84,7 +84,7 @@ class Predictions():
 
     def __set_predictions(self,predictions):
         #couples answer_type-threshold
-        prediction_types=[("sure_answer",0.8),("unsure_answer",0.6),("dubious_answer",0.4),("cannot_answer",0)] 
+        prediction_types=[("sure_answer",0.6),("unsure_answer",0.4),("dubious_answer",0.3),("cannot_answer",0)] 
 
         #list of possible predictions sorted by confidence
         self.predictions=sorted([Prediction(l,c) for (l,c) in predictions],key=lambda x: x.confidence,reverse=True) #

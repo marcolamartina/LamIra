@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 import random
 
-def show_space(X,y):
+def show_space(X,y,legend=True):
     fig = plt.figure(num="Knowledge Space",figsize=(8,8))
     color={}
     for space_index,space_label in enumerate(X.keys()):
@@ -16,8 +16,13 @@ def show_space(X,y):
         for point,label in zip(X_current,y_current):
             if label not in color.keys():
                 color[label]=[random.random() for _ in range(3)]
-                ax.text(point[0],point[1],point[2], label, size=10, zorder=1, color='k') 
-            ax.plot(point[0],point[1],point[2], "o", color=color[label])
+                ax.text(point[0],point[1],point[2], label, size=10, zorder=1, color='k')
+                if legend:
+                    ax.plot(point[0],point[1],point[2], "o", color=color[label],label=label) 
+            else:
+                ax.plot(point[0],point[1],point[2], "o", color=color[label])
+        if legend:
+            ax.legend(loc='upper left')        
         axis_label={"x":"x", "y":"y", "z":"z"}    
         for i,label in axis_label.items():
             eval("ax.set_{:s}label('{:s}')".format(i, label))  
