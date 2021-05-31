@@ -20,10 +20,6 @@ bowl_3:semisfera;bianco;liscio
 bowl_4:semisfera;bianco;liscio
 bowl_5:semisfera;bianco-blu;liscio
 bowl_6:semisfera;bianco-blu;liscio
-calculator_1:parallelepipedo;grigio;liscio
-calculator_2:parallelepipedo;grigio;liscio
-calculator_3:parallelepipedo;bianco-nero;liscio
-calculator_4:parallelepipedo;verde;liscio
 camera_1:parallelepipedo;grigio;liscio
 camera_2:parallelepipedo;nero;liscio
 camera_3:parallelepipedo;grigio;liscio
@@ -68,8 +64,6 @@ onion_1:sfera;bianco;ruvido
 onion_2:sfera;bianco;ruvido
 onion_3:sfera;bianco;ruvido
 onion_4:sfera;bianco;ruvido
-onion_5:sfera;viola;ruvido
-onion_6:sfera;viola;ruvido
 peach_1:sfera;rosso;liscio
 peach_2:sfera;rosa;liscio
 peach_3:sfera;rosso;liscio
@@ -130,7 +124,6 @@ orange_4:sfera;arancione;ruvido
 sponge_1:parallelepipedo;arancione;ruvido
 sponge_2:parallelepipedo;verde;ruvido
 sponge_3:parallelepipedo;blu;ruvido
-sponge_4:parallelepipedo;viola;ruvido
 sponge_7:parallelepipedo;verde;ruvido
 sponge_8:parallelepipedo;blu;ruvido
 sponge_9:sfera;rosso;ruvido
