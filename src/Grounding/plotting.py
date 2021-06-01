@@ -14,13 +14,14 @@ def show_space(X,y,legend=True):
         ax = fig.add_subplot(2,2,space_index+1, projection="3d")
         ax.set_title(space_label)
         for point,label in zip(X_current,y_current):
-            if label not in color.keys():
-                color[label]=[random.random() for _ in range(3)]
-                ax.text(point[0],point[1],point[2], label, size=10, zorder=1, color='k')
-                if legend:
-                    ax.plot(point[0],point[1],point[2], "o", color=color[label],label=label) 
-            else:
-                ax.plot(point[0],point[1],point[2], "o", color=color[label])
+            if label=="rosso" or label=="giallo" or label=="verde" or label=="blu": 
+                if label not in color.keys():
+                    color[label]=[random.random() for _ in range(3)]
+                    ax.text(point[0],point[1],point[2], label, size=10, zorder=1, color='k')
+                    if legend:
+                        ax.plot(point[0],point[1],point[2], "o", color=color[label],label=label) 
+                else:
+                    ax.plot(point[0],point[1],point[2], "o", color=color[label])
         if legend:
             ax.legend(loc='upper left')        
         axis_label={"x":"x", "y":"y", "z":"z"}    

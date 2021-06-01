@@ -169,11 +169,11 @@ class Grounding:
 
     def classify_features(self,features,space_name): 
         feature=features[space_name]   
-        if space_name=="general":
-            probabilities=self.spaces.spaces[space_name].classify(feature)
-            if self.verbose:
-                print("{}: {}".format(space_name,round_list(probabilities)))
-            return probabilities
+        probabilities=self.spaces.spaces[space_name].classify(feature)
+        if self.verbose:
+            print("{}: {}".format(space_name,round_list(probabilities)))
+        return probabilities
+        '''    
         else:    
             distances=self.spaces.spaces[space_name].classify(feature)    
             classifications=[]
@@ -187,6 +187,7 @@ class Grounding:
             if self.verbose:
                 print("{}: {}".format(space_name,round_list(classifications)))
             return classifications
+        '''    
 
     def extract(self,scan,space_name):
         color_masked,depth_masked=scan
@@ -528,10 +529,10 @@ def learn_color():
 
 
                 
-if __name__=="__main__":
+if __name__=="__main__":       
     #learn_color()
     for _ in range(1):
         data_dir_images_captured = os.path.join(data_dir_images_captured,random.choice([f.name for f in os.scandir(data_dir_images_captured) if f.is_dir() and not f.name.startswith("_")]))
-        main("classify","general",captured=True, create_knowledge=True)
+        main("classify","general",captured=True, create_knowledge=False)
         data_dir_images_captured = os.path.join(data_dir_images_captured, "..")
     #learn_knowledge()           

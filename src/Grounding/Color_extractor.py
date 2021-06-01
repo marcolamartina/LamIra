@@ -24,6 +24,7 @@ class Color_extractor:
         rows,cols,channels = lab.shape
         pixels=[cv2lab_to_cielab(lab[i,j]) for j in range(cols) for i in range(rows) if image[i,j].tolist()!=[0,0,0]]
         centroid_list=kmeans(pixels, n_clusters=3, dimensions=False)
+        centroid_list=[normalize_color(i) for i in centroid_list]
         #cv2.imshow('image',image)
         #cv2.waitKey(0)
         #cv2.destroyAllWindows()
@@ -54,6 +55,7 @@ def cielab_to_rgb(lab):
     return rgb.tolist()[0][0]
 
 def normalize_color(color):
+    return color
     color_normalized=[]
     for i,f in enumerate(color):
         if i%3==0:
