@@ -11,7 +11,7 @@ import sys
 language="it-IT"
 verbose=True
 show_video=True
-show_depth=True
+show_depth=False
 show_merged=True
 show_assistent=False
 play_audio=False
