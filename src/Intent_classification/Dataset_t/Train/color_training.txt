@@ -1,28 +1,37 @@
-cosa colore ha l’oggetto
+che colore ha l’oggetto
 che sfumatura ha l’oggetto
 che colore c’è nella figura
 che colore ha questa cosa
 di quale colore è
-mi dici che colore è
-mi dici che sfumatura è
-mi dici che colore ha
-mi dici che tintura è
-dimmi che colore è
-dimmi che sfumatura è
-dimmi che tintura è
-dimmi il colore
 che colore è
 di che colore è
-descrivi il colore
 quale colore ha
+il colore
+un colore
 colore
 sfumatura
+il colore che hai davanti
 che colore hai davanti
 che colore è questa cosa
-il colore di questo oggetto qual è
-descrivimi il colore
-vorrei sapere il colore
+il colore di questo oggetto
 che colore vedi
+qual è il colore dell'oggetto
+che sfumatura presenta l'oggetto
+qual è il colore di questa cosa
+che sfumatura presenta questa cosa
+qual è il colore di quello che vedi
+che sfumatura presenta quello che vedi
+che colore riconosci
+che colore è questo
+che sfumatura ha
+a che colore assomiglia
+il colore che è presente in questo oggetto
+la gamma cromatica
+il colore di questo oggetto
+colore
+un nuovo colore
+questo colore
+questa tinta
 rosso
 blu
 verde
@@ -64,9 +73,6 @@ conchiglia
 corallo
 crema
 cremisi
-denim
-denim chiaro
-ecru
 fucsia
 giada
 giallo
@@ -113,18 +119,7 @@ terra di siena
 turchese
 viola scuro
 zaffiro
-qual è il colore dell'oggetto
-che sfumatura presenta l'oggetto
-qual è il colore di questa cosa
-che sfumatura presenta questa cosa
-qual è il colore di quello che vedi
-che sfumatura presenta quello che vedi
-che colore riconosci
-mi aiuti a capire il colore dell'oggetto
-mi aiuti a capire il colore di questa cosa
-che colore è questo
-che sfumatura noti
-a che colore assomiglia
-che tintura noti nella foto
-che colore è presente in questo oggetto
-quale gamma cromatica noti
+il colore nero
+il colore blu
+il colore rosso
+una nuova tinta

@@ -1,18 +1,22 @@
-abilita training mod
+abilita training mode
 entra nella modalità addestramento
 modalità di addestramento
+cambia in training mode
+training mode
+modalità addestramento
 abilita modalità di addestramento
 modalità di apprendimento
-ti insegno un po' di cose
-impare queste cose
-guarda cosa ti spiego
-ti aiuto a capire alcune cose
-dammi la possibilità di insegnarti alcune cose
-ti insegno una cosa
-impara questa cosa
-abilità modalità insegnamento
+ti insegno un po' di roba
+impara questo
+guarda che ti spiego
+vai in training mode
+passa alla training mode
+ti aiuto a capire qualcosa
+dammi la possibilità di insegnarti
+abilita modalità insegnamento
 insegnare
 addestrare
+entra in training mode
+vai nella modalità addestramento
+passa alla training mode
 imparare
-impara questo oggetto
-impara questo colore

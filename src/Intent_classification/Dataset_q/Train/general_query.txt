@@ -8,6 +8,7 @@ cosa c’è qui
 che cosa è
 cos’è
 cosa è
+cosa significa
 che oggetto c’è sul tavolo
 che oggetto stai inquadrando
 mi dici cosa è
@@ -21,30 +22,30 @@ che può essere
 cosa può essere
 cosa hai davanti
 che cosa hai davanti
-cosa stai guardando
+puoi dirmi cosa stai guardando
 cos’è sta cosa
-cosa c’è nell’immagine
+riesci a dirmi cosa c’è nell’immagine
 cosa vede la webcam
 che oggetto stai guardando
-cosa c’è davanti a te
+riesci a dirmi cosa c’è davanti a te
 cosa hai davanti a te
-cosa hai davanti
+puoi dirmi cosa hai davanti
 che cosa è
-descrivimi questo oggetto
-mi fai una descrizione
-che oggetto è
+dammi una descrizione di questo oggetto
+riesci a darmi una descrizione
+aiutami a capire che oggetto è
 che cosa vedi
-cos'è sta cosa
+riesci a dirmi cos'è sta cosa
 che cosa vedi
 che cosa stai guardando
-cosa stai vedendo
+riesci a dirmicosa stai vedendo
 cosa può essere questa cosa
-me la dai una descrizione di questo
+vorrei una descrizione di questo
 questo oggetto come è combinato
-che cosa è ciò che vedi
-che cosa osservi
+aiutami a capire che cosa è ciò che vedi
+aiutami a capire che cosa osservi
 cosa è questo prodotto
-che articolo è
+aiutami a capire che articolo è
 che stai osservando
 cosa è sto coso
 cosa mi rappresenta
@@ -55,66 +56,64 @@ di quale oggetto si tratta
 a che categoria appartiene questo articolo
 descrivi questo coso
 che cosa sto vedendo
-cosa è sta cosa
+puoi dirmi cosa è sta cosa
 voglio capire 
 che articolo stai inquadrando
-che articolo è
+voglio sapere che articolo è
 cos’è questo articolo
 articolo
 oggetto
 cosa
-cosa è questo
+voglio sapere cosa è questo
 cosa stiamo vedendo
-cos’è questo
+voglio sapere cos’è questo
 cosa è questo oggetto
-fammi una descrizione dell’oggetto
+vorrei una descrizione dell’oggetto
 descrivimi l’oggetto
-questo oggetto cosa è
+puoi dirmi questo oggetto cosa è
 l’oggetto cosa è
 cosa diavolo è questa cosa
 che cosa è
 per favore dimmi cosa è
 cosa è questo per favore
-cosa vedi
+vorrei sapere cosa vedi
 cosa stiamo vedendo
-cosa stiamo guardando
+vorrei sapere cosa stiamo guardando
 cosa c’è qui
-cosa c’è li
-cosa è
-dimmi cosa è questo oggetto
+vorrei sapere cosa c’è li
+vorrei sapere cosa è
+cosa è questo oggetto
 cosa mi rappresenta questa cosa
 che può essere sta cosa
-mi aiuti a capire cosa è questo oggetto
+aiutami a capire cosa è questo oggetto
 cosa diavolo è questo oggetto
 che oggetto distingui nella foto
 che cosa c’è nella foto
 l'oggetto che vedi cosa è
-questo oggetto cosa pensi possa essere
+questo oggetto cosa possa essere
 cosa pensi possa essere questo oggetto
 cosa pensi possa essere questa cosa
 cosa stiamo vedendo
 cosa potrebbe esserci davanti alla webcam
 che oggetto c'è davanti alla webcam
 cosa c'è a terra
-che oggetto riconosci in foto
+che oggetto c'è in foto
 che cosa vedi in foto
-mi sai dire che stiamo vedendo
-mi sai dire cosa sto inquadrando
-mi sai dire che oggetto ti sto mostrando
+che stiamo vedendo
+cosa sto inquadrando
+che oggetto ti sto mostrando
 cosa potrebbe essere questa cosa che ti faccio vedere
 che cos'è questa cosa che ho in mano
 che è questo oggetto
-lo riconosci
 cosa pensi che sia
 sai dirmi cos'è
-mi aiuti a capire cos'è
+cos'è
 non so cosa sia questa cosa
 non so cosa sia questo oggetto
 che cosa rappresenta questo oggetto
-mi sai fornire il nome di questo oggetto
+dimmi il nome di questo oggetto
 come si chiama questa cosa
 come si chiama questo oggetto
-non ricordo cosa sia
 cosa sai dirmi su sto oggetto
 cos'è sto coso
 cosa vedi dalla webcam

@@ -104,7 +104,7 @@ l'oggetto è rotondo
 questa cosa è quadrata
 quello che vedi è rettangolare
 la forma è triangolare
-l'aspetto è quadrato o rettangolare
+l'aspetto è quadrato
 pensi che l'aspetto sia esagonale
 riconosci la sagoma dell'oggetto
 riconosci la sagoma di questa cosa
@@ -118,3 +118,10 @@ mi sai dire la forma di questa cosa
 mi sai dire la sagoma di ciò che vedi
 mi sai dire la forma di ciò che vedi
 mi sai dire la sagoma di questa cosa
+la forma dell'oggetto
+la sua forma
+questa forma
+questa nuova forma
+questa sagoma
+la sagoma di questo oggetto
+la forma di questo oggetto

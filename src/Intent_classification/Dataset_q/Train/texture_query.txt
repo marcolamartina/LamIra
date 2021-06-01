@@ -41,11 +41,9 @@ toccando questo oggetto come sembra
 toccando questo oggetto che tessitura si sente
 mi sai dire che tipo di trama ha l'oggetto
 tessitura 
-abaca
 acetato
 acrilico
 arazzo
-arcolaio
 canapa
 canovaccio
 cashmere
@@ -57,13 +55,10 @@ denaro
 denim
 ecopelle
 écru
-faille o faglia
 felpa
 feltro
-fettuccia
 fibra tessile
 fibre naturali
-filaticcio
 filato
 finta pelle
 fresco lana
@@ -74,7 +69,6 @@ lana
 lino
 matassa
 merletto
-messa in carta
 microfibra
 mussola
 nastro
@@ -94,31 +88,22 @@ pois
 rafia
 rasatello
 raso
-rayon
 ricamo
-ritorto per trama
 ritorto singolo
 rocca
 rocchetto
 sartoria
 seta
 smerigliatura
-spina di pesce
-spoletta volante
 spugna
-stamigna
-stampa tessile
-stiratura
 tappeto
 tecnofibre
 tela
 telaio
 tessitura
-tessuti antipiega
 tessuto
 tombolo
 trama
-triacetato
 trattura
 tulle
 velcro
@@ -149,3 +134,6 @@ ciò che vedi come ti sembra
 che tessitura pensi possa avere l'oggetto
 come classificheresti la tessitura di ciò che vedi
 che tipo di superficie riconosci
+che tessitura potrebbe avere l'oggetto
+che texture potrebbe avere l'oggetto
+che superficie potrebbe avere l'oggetto

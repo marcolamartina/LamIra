@@ -4,9 +4,9 @@ che colore c’è nella figura
 che colore ha l’oggetto 
 di quale colore è questa cosa
 dimmi che colore è l’oggetto 
-dimmi che sfumatura ha l’oggetto 
+voglio sapere che sfumatura ha l’oggetto 
 dimmi che tintura ha l’oggetto 
-dimmi il colore dell’oggetto 
+vorrei sapere il colore dell’oggetto 
 l’oggetto è grigio
 l’oggetto è blu
 questa cosa è cobalto
