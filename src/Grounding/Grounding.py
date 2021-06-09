@@ -160,9 +160,12 @@ class Grounding:
             print("Intent: {}".format(intent))
         features=self.extract(scan,space)
         labels=self.classify_features(features,space)
+        if space=="general":
+            description=[self.classify_features(features,s)[0][0] for s in ["color","shape","texture"]]
+            return labels,description
         if self.verbose and space=="color" and test:
             print_colors(features['color'])         
-        return labels
+        return labels,None
 
     def extract_general_features(self,features):
         return normalize_color(features["color"])+features["shape"]+features["texture"]      
@@ -172,22 +175,7 @@ class Grounding:
         probabilities=self.spaces.spaces[space_name].classify(feature)
         if self.verbose:
             print("{}: {}".format(space_name,round_list(probabilities)))
-        return probabilities
-        '''    
-        else:    
-            distances=self.spaces.spaces[space_name].classify(feature)    
-            classifications=[]
-            probability=0
-            for l,d in distances:
-                p=1/(d+0.001)
-                probability+=p
-                classifications.append((l,p))
-            classifications=[(l,d/probability) for l,d in classifications]
-            classifications.sort(key=lambda x:x[1],reverse=True)
-            if self.verbose:
-                print("{}: {}".format(space_name,round_list(classifications)))
-            return classifications
-        '''    
+        return probabilities  
 
     def extract(self,scan,space_name):
         color_masked,depth_masked=scan

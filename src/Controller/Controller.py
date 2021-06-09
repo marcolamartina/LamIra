@@ -35,6 +35,7 @@ class Controller:
         self.videos=videos
         self.default=default
         self.calibration=calibration
+        self.spaces=["general","color","shape","texture"]
 
         # welcome message
         self.say("welcome")
@@ -74,8 +75,8 @@ class Controller:
             rois=self.kinect.get_image_roi()
             try:
                 roi=max(rois,key=lambda x:np.count_nonzero(x[1]))
-                predictions=self.grounding.classify(roi,best_intent)
-                text=self.text_production.to_text_predictions(best_intent,predictions)
+                predictions,description=self.grounding.classify(roi,best_intent)
+                text=self.text_production.to_text_predictions(best_intent,predictions,description)
                 self.say_text(text)
             except:
                 self.log(sys.exc_info()[1])
@@ -123,21 +124,27 @@ class Controller:
 
             label_confirmed=0
             while not label_confirmed:
-                label=self.get_label_input(best_intent)
-                confirm_response=self.get_input("confirm_label","Vuoi confermare {}?".format(label))
+                labels=self.get_label_input(best_intent)
+                confirm_response=self.get_input("confirm_label","Vuoi confermare {}?".format(self.concatenate_labels(labels)))
                 label_confirmed=self.verify_confirm(confirm_response)
             if label_confirmed==2:
                 continue
-
-            try:    
-                self.grounding.learn(roi,best_intent,label)
-                text=self.text_production.to_text_subject(best_intent,label)
+#labels=["palla","rosso",None,"liscio"]
+            try:
+                for i,l in enumerate(labels):
+                    if l:    
+                        self.grounding.learn(roi,self.spaces[i]+"_training",l)
+                text=self.text_production.to_text_subject(labels)
                 self.say_text(text)
             except:
-                raise
                 self.log(sys.exc_info()[1])
                 self.say("error")
-
+    
+    def concatenate_labels(self,labels):
+        labels=[i for i in labels if i]
+        if len(labels)<=1:
+            return labels[0]
+        return " e ".join([", ".join(labels[:-1]),labels[-1]])
 
     def verify_confirm(self,confirm_response):
         """Accepts a text and return an integer that can be:
@@ -181,7 +188,13 @@ class Controller:
 
     def get_label_input(self,intent):
         request_type=intent.split("_")[0]+"_label_query"
-        return self.get_input(request_type)                     
+        user_input=self.get_input(request_type)
+        result=[user_input[0]]
+        input_list=user_input.split(" ")
+        for l in ["colore","forma","tessitura"]:
+            if l in input_list:
+                result.append(input_list[input_list.index(l)+1])
+        return result                      
 
     def run(self):
         self.query_mode()
@@ -208,6 +221,8 @@ class Controller:
                 self.video_id.value=self.default              
 
     def say(self, video, text=None):
+        if video in ["training_request","query"]:
+            return
         if self.show_assistent:
             target=video+".mp4"
             if target not in self.videos:

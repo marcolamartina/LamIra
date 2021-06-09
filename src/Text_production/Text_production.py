@@ -17,23 +17,23 @@ class Text_production:
     def __init__(self,verbose=False):
         self.__set_labels()
         self.verbose=verbose
-        self.local=local        
+        self.local=local
+        self.spaces=["l'oggetto","il colore","la forma","la tessitura"]        
 
     def set_attributes_predictions(self,intent_label,predictions):
         self.intent_label=intent_label
         self.predictions=Predictions(predictions)
 
-    def set_attributes_subject(self,intent_label,subject):
-        self.intent_label=intent_label
-        self.subject=subject
+    def concatenate_labels(self,labels):
+        if len(labels)<=1:
+            return labels[0]
+        return " e ".join([", ".join(labels[:-1]),labels[-1]])
 
     def split_label(self,label):
         elements=label.split("-")
-        if len(elements)<=1:
-            return label
-        return " e ".join([", ".join(elements[:-1]),elements[-1]])
+        return self.concatenate_labels(elements)
         
-    def to_text_predictions(self,intent_label,predictions):
+    def to_text_predictions(self,intent_label,predictions,description):
         self.set_attributes_predictions(intent_label,predictions)
         path = os.path.join(data_dir_text_production,"Templates",self.intent_label,"{}.txt".format(self.predictions.prediction_type))
         with open(path,"r") as f:
@@ -49,23 +49,20 @@ class Text_production:
                 output=output.replace("{label_a}",self.split_label(self.predictions.best_predictions[1].label.label)) 
                 output=output.replace("{art_def_a}",self.predictions.best_predictions[1].label.article_definite)
                 output=output.replace("{art_indef_a}",self.predictions.best_predictions[1].label.article_indefinite)
+        if description:
+            if self.predictions.prediction_type=="cannot_answer":
+                output+=", però posso dirti che è di colore {}, è a forma di {} ed è di un materiale {}".format(*description)
+            if self.predictions.prediction_type in ["dubious_answer","unsure_answer"]:
+                output+=", poiché è di colore {}, è a forma di {} ed è di un materiale {}".format(*description)   
         if self.verbose:
             print("Best predictions: {}".format([(p.label.label,round(p.confidence,4)) for p in self.predictions.best_predictions]))
         return output
 
-    def to_text_subject(self,intent_label,subject):
-        self.set_attributes_subject(intent_label,subject)
-        if "color" in intent_label:
-            l="il colore"
-        elif "shape" in intent_label:
-            l="la forma"
-        elif "texture" in intent_label:
-            l="la tessitura"
-        else:
-            l="l'oggetto"    
+    def to_text_subject(self,subjects):
+        subjects_list=[" ".join(self.spaces[i],s) for i,s in enumerate(subjects) if s ]
         outputs=["Ho appena imparato","Ho imparato","Ho appreso"]
         output=random.choice(outputs) 
-        output="{} {} {}".format(output,l,subject)
+        output+=" "+self.concatenate_labels(subjects_list)
         return output             
 
     def __set_labels(self):
