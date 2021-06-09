@@ -1,7 +1,7 @@
 import numpy as np
 from sklearn.pipeline import make_pipeline
 from sklearn.preprocessing import StandardScaler
-from sklearn.linear_model import SGDClassifier 
+from sklearn.svm import SVC
 import matplotlib.pyplot as plt
 import random
 import time 
@@ -17,11 +17,11 @@ for dimension_sample in possible_dimensions_sample:
     pts = rng.random_sample((dimension_sample, dimension))
     starting=time.time()
     labels=np.array([random.randint(0,10) for _ in range(dimension_sample)])
-    clf = make_pipeline(StandardScaler(), SGDClassifier()) 
+    clf = make_pipeline(StandardScaler(), SVC()) 
     clf.fit(pts,labels)
     time_elapsed=time.time()-starting
     x_sample.append(dimension_sample)
-    y_sample.append(time_elapsed*1000)
+    y_sample.append(time_elapsed)
     print(time_elapsed)
 
 dimension_sample=1000
@@ -31,22 +31,22 @@ for dimension in possible_dimensions:
     pts = rng.random_sample((dimension_sample, dimension))
     starting=time.time()
     labels=np.array([random.randint(0,10) for _ in range(dimension_sample)])
-    clf = make_pipeline(StandardScaler(), SGDClassifier()) 
+    clf = make_pipeline(StandardScaler(), SVC()) 
     clf.fit(pts,labels)
     time_elapsed=time.time()-starting
     x_dim.append(dimension)
-    y_dim.append(time_elapsed*1000)
+    y_dim.append(time_elapsed)
     print(time_elapsed)
 
 plt.subplot(2, 1, 1)
-plt.title("Linear SVM Benchmark")
+plt.title("SVM Benchmark")
 plt.xlabel("Sample Dimension")
-plt.ylabel("Time(ms)")
+plt.ylabel("Time(s)")
 plt.plot(x_sample,y_sample)
 
 plt.subplot(2, 1, 2)
 plt.xlabel("Dimensionality")
-plt.ylabel("Time(ms)")
+plt.ylabel("Time(s)")
 plt.plot(x_dim,y_dim)
 
 plt.show()    
