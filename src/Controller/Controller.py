@@ -83,7 +83,11 @@ class Controller:
                     label_confirmed,label_correct=self.verify_prediction(confirm_response)
                     if label_confirmed==2:
                         continue
-                    if label_correct:
+                    elif label_confirmed==1:
+                        print("pippppoooooo")
+                        print(predictions[0][0])
+                        #self.grounding.learn_features(best_intent,predictions[0][0],features)
+                    elif label_correct:
                         self.grounding.learn_features(best_intent,label_correct,features)
 
                 
