@@ -96,7 +96,7 @@ class Text_to_speech:
 
 def save_audio():
     text_to_speech=Text_to_speech(verbose=False,language="it-IT")
-    nome="LamIra"
+    nome="LAMIRA"
     path=os.path.join(data_dir_text_to_speech,"..","..","Media","Audio")
     welcome_message_list=["Ciao, "+nome+" ti dà il benvenuto.", "Benvenuto in "+nome+".", nome+" ti dà il benvenuto", "Ciao, sono "+nome+" e sono qui per aiutarti", "Sono "+nome+" e voglio darti il benvenuto."]
     quit_message_list=["Arrivederci da "+nome, "È stato un piacere", nome+" ti ringrazia", "Grazie per aver scelto "+nome+", arrivederci.", nome+" ti augura una buona giornata!", "A presto", "Un saluto da "+nome]

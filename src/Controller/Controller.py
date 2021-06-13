@@ -13,7 +13,7 @@ import numpy as np
 
 
 class Controller:
-    def __init__(self, newstdin=sys.stdin, close=None, verbose=False, show_assistent=True, play_audio=True, transcription=True, microphone=False, language="it-IT",device_type="cpu", video_id=None, lock=None, videos=None, default=None, name="LamIra", image=None, depth=None, merged=None, roi=None, i_shape=None, d_shape=None, m_shape=None, calibration=None):
+    def __init__(self, newstdin=sys.stdin, close=None, verbose=False, show_assistent=True, play_audio=True, transcription=True, microphone=False, language="it-IT",device_type="cpu", video_id=None, lock=None, videos=None, default=None, name="LAMIRA", image=None, depth=None, merged=None, roi=None, i_shape=None, d_shape=None, m_shape=None, calibration=None):
         sys.stdin = os.fdopen(newstdin)
         self.name=name
         self.close=close
@@ -90,8 +90,8 @@ class Controller:
                         elif label_correct:
                             self.grounding.learn_features(best_intent,label_correct,features)
                     else:
-                        self.grounding.learn_features(best_intent,confirm_response[-1],features)       
-
+                        self.grounding.learn_features(best_intent,confirm_response.split(" ")[-1],features)       
+                    self.say_text("Ok")     
                 
             except ValueError:
                 self.say_text("Non è stato rilevato nessun oggetto")     

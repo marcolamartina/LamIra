@@ -205,9 +205,9 @@ class Grounding:
         self.spaces.insert(space_label,label,feature)
         return features
 
-    def learn_features(self,intent,label,feature):
+    def learn_features(self,intent,label,features):
         space_label=intent[:-6]    
-        self.spaces.insert(space_label,label,feature)
+        self.spaces.insert(space_label,label,features[space_label])
 
     def load_knowledge(self):
         space_names = [ f.name for f in os.scandir(data_dir_knowledge) if f.is_dir() ] # ["color","shape","texture","general"]

@@ -43,7 +43,7 @@ def get_video_path():
         os._exit(1)  
 
 def main():
-    name="LamIra"
+    name="LAMIRA"
     videos,default=get_video_path()
     video_id = Value('i',  default)
     calibration = Value('i',  0)
