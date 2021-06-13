@@ -36,14 +36,15 @@ def noalsaerr():
     asound.snd_lib_error_set_handler(None)
 
 class Text_to_speech:
-    def __init__(self,verbose=False,language="it-IT",play_audio=True):
+    def __init__(self,verbose=False,language="it-IT",play_audio=True,transcription=True):
         self.language=language
         self.verbose=verbose
+        self.transcription=transcription
         self.play_audio=play_audio
 
     def speak(self,text):
         #Transcript
-        if self.verbose or not self.play_audio:
+        if self.verbose or self.transcription or not self.play_audio:
             print(text)
 
         if self.play_audio:    
@@ -81,7 +82,7 @@ class Text_to_speech:
         
     def speak_from_file(self, filename):
         #Transcript
-        if self.verbose or not self.play_audio:
+        if self.verbose or self.transcription or not self.play_audio:
             with open("../Media/Audio/"+filename[:-3]+"txt","r") as f:
                 print(f.readline())
         if self.play_audio:

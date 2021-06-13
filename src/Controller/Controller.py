@@ -13,18 +13,19 @@ import numpy as np
 
 
 class Controller:
-    def __init__(self, newstdin=sys.stdin, close=None, verbose=False, show_assistent=True, play_audio=True, microphone=False, language="it-IT",device_type="cpu", video_id=None, lock=None, videos=None, default=None, name="LamIra", image=None, depth=None, merged=None, roi=None, i_shape=None, d_shape=None, m_shape=None, calibration=None):
+    def __init__(self, newstdin=sys.stdin, close=None, verbose=False, show_assistent=True, play_audio=True, transcription=True, microphone=False, language="it-IT",device_type="cpu", video_id=None, lock=None, videos=None, default=None, name="LamIra", image=None, depth=None, merged=None, roi=None, i_shape=None, d_shape=None, m_shape=None, calibration=None):
         sys.stdin = os.fdopen(newstdin)
         self.name=name
         self.close=close
         self.show_assistent=show_assistent
         self.verbose=verbose
+        self.transcription=transcription
         self.microphone=microphone
         self.intent_threshold=60
         self.intent_classification=Intent_classification(verbose,device_type,language)
         self.grounding=Grounding(verbose)
         self.text_production=Text_production(verbose)
-        self.text_to_speech=Text_to_speech(verbose,language,play_audio)
+        self.text_to_speech=Text_to_speech(verbose,language,play_audio,transcription)
         self.kinect=Kinect(verbose, image, depth, merged, roi, i_shape, d_shape, m_shape)
         if microphone:
             self.speech_to_text=Speech_to_text(verbose,language)
@@ -219,9 +220,14 @@ class Controller:
         user_input=self.get_input(request_type)
         input_list=user_input.split(" ")
         result=[input_list[0]]
-        for l in ["colore","forma","tessitura"]:
-            if l in input_list:
-                result.append(input_list[input_list.index(l)+1])
+        spaces=[["colore"],["forma di"],["materiale","tessitura"]]
+        for s in spaces:
+            for l in s:
+                if l in input_list:
+                    label=l
+                    break
+            if np.any([l in input_list for l in s]):
+                result.append(input_list[input_list.index(label)+1])
         return result                      
 
     def run(self):

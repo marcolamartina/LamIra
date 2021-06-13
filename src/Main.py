@@ -9,17 +9,18 @@ import sys
 
 
 language="it-IT"
-verbose=True
+verbose=False
 show_video=True
 show_depth=True
 show_merged=True
 show_assistent=True
 play_audio=True
+transcription=True
 microphone=False
 device_type="cpu"
 
 def logic_start(close, video_id, lock, videos, default, name, image, depth, merged, roi, i_shape, d_shape, m_shape, newstdin, calibration):
-    controller=Controller(newstdin, close, verbose, show_assistent, play_audio, microphone, language,device_type,video_id, lock, videos, default, name, image, depth, merged, roi, i_shape, d_shape, m_shape, calibration)
+    controller=Controller(newstdin, close, verbose, show_assistent, play_audio, transcription, microphone, language,device_type,video_id, lock, videos, default, name, image, depth, merged, roi, i_shape, d_shape, m_shape, calibration)
     controller.run()
 
 def kinect_video_player_start(close, image, depth, merged, roi, i_shape, d_shape, m_shape, show_video, show_depth, show_merged, calibration):
