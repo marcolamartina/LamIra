@@ -197,7 +197,7 @@ class Controller:
 
     def thinking(self):
         self.play_video("thinking")
-        if self.verbose:
+        if self.verbose or self.transcription:
             print("Sto pensando...")  
 
     def get_input(self,request_type,text=None):
