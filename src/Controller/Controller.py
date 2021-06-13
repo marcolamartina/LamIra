@@ -81,13 +81,16 @@ class Controller:
                 self.say_text(text)
                 if prediction_type!="sure_answer":
                     confirm_response=self.get_input("confirm_label",self.confirm_query[prediction_type])
-                    label_confirmed,label_correct=self.verify_prediction(confirm_response)
-                    if label_confirmed==2:
-                        continue
-                    elif label_confirmed==1:
-                        self.grounding.learn_features(best_intent,predictions[0][0],features)
-                    elif label_correct:
-                        self.grounding.learn_features(best_intent,label_correct,features)
+                    if prediction_type=="unsure_answer":
+                        label_confirmed,label_correct=self.verify_prediction(confirm_response)
+                        if label_confirmed==2:
+                            continue
+                        elif label_confirmed==1:
+                            self.grounding.learn_features(best_intent,predictions[0][0],features)
+                        elif label_correct:
+                            self.grounding.learn_features(best_intent,label_correct,features)
+                    else:
+                        self.grounding.learn_features(best_intent,confirm_response[-1],features)       
 
                 
             except ValueError:
@@ -187,7 +190,7 @@ class Controller:
                 return 2,None
             elif n in self.negative_sentences:
                 return 0,l[-1]
-        return 1,None  
+        return 1,l[-1]  
 
         
                
