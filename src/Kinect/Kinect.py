@@ -146,16 +146,26 @@ class Kinect_video_player:
         self.image_processing=Image_processing(self.get_depth_image())                
 
     def run(self):
-        window_y=450
+        from screeninfo import get_monitors
+        screen = get_monitors()
+        if len(screen)>1:
+            start_x=screen[1].width
+        else:
+            start_x=0
+        window_y=1920-COLOR_VIDEO_RESOLUTION[0]
+        #start_im=np.zeros((COLOR_VIDEO_RESOLUTION[0], COLOR_VIDEO_RESOLUTION[1]))
         if self.show_video:
             cv2.namedWindow('Video')
-            cv2.moveWindow('Video',0 ,window_y)
+            #cv2.imshow('Video', start_im)
+            cv2.moveWindow('Video',start_x , window_y)
         if self.show_depth:
             cv2.namedWindow('Depth')
-            cv2.moveWindow('Depth',COLOR_VIDEO_RESOLUTION[1],window_y)
+            #cv2.imshow('Depth', start_im)
+            cv2.moveWindow('Depth',start_x+COLOR_VIDEO_RESOLUTION[1],window_y)
         if self.show_merged:
             cv2.namedWindow('Merged')
-            cv2.moveWindow('Merged',COLOR_VIDEO_RESOLUTION[1],0)      
+            #cv2.imshow('Merged', start_im)
+            cv2.moveWindow('Merged',start_x+2*COLOR_VIDEO_RESOLUTION[1],window_y)   
         with stderr_redirected(to=os.devnull):
             while True:
                 try:
@@ -181,10 +191,13 @@ class Kinect_video_player:
                     merged=self.get_roi(mask,merged)
                     if self.show_depth:
                         cv2.imshow('Depth', depth)
+                        cv2.moveWindow('Depth',start_x+COLOR_VIDEO_RESOLUTION[1],window_y)
                     if self.show_video:   
                         cv2.imshow('Video', image)
+                        cv2.moveWindow('Video',start_x , window_y)
                     if self.show_merged:   
                         cv2.imshow('Merged', merged)    
+                        cv2.moveWindow('Merged',start_x+2*COLOR_VIDEO_RESOLUTION[1],window_y)   
                     if (self.show_depth or self.show_video or self.show_merged):
                         cv2.waitKey(1)
                                 

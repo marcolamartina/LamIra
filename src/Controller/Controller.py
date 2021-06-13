@@ -81,6 +81,8 @@ class Controller:
             except:
                 self.log(sys.exc_info()[1])
                 self.say("error")
+                self.say_text("Non è stato rilevato nessun oggetto")
+                continue
                 
 
     def training_mode(self):
@@ -120,7 +122,9 @@ class Controller:
                 roi=max(rois,key=lambda x:np.count_nonzero(x[1]))
             except:
                 self.log(sys.exc_info()[1])
-                self.say("error")    
+                self.say("error")
+                self.say_text("Non è stato rilevato nessun oggetto")
+                continue    
 
             label_confirmed=0
             while not label_confirmed:
@@ -154,12 +158,12 @@ class Controller:
 
         """
         negative=["no","negativo"]
-        cancel=["annulla","esci","niente"]
+        cancel=["annulla","esci","niente","nulla"]
         for n in confirm_response.lower().split(" "):
-            if n in negative:
+            if n in cancel:
+                return 2
+            elif n in negative:
                 return 0
-            elif n in cancel:
-                return 2    
         return 1
                
 

@@ -96,6 +96,9 @@ python3 setup.py install
 # texture extractor
 pip3 install mahotas==1.2.0
 
+# use double monitor
+pip3 install screeninfo
+
 
 
 

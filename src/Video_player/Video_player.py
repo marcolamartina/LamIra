@@ -17,8 +17,14 @@ class Video_player:
             
 
     def run(self):
+        import screeninfo
+        screen = screeninfo.get_monitors()
+        if len(screen)>1:
+            start_x=screen[1].width
+        else:
+            start_x=0
         cv2.namedWindow(self.name)
-        cv2.moveWindow(self.name,0,0)
+        cv2.moveWindow(self.name,start_x,25)
         
         while True:
         #This is to check whether to break the first loop
@@ -35,6 +41,7 @@ class Video_player:
                 if ret == True and current_id==self.video_id.value: # video not finished and no request for playing
 
                     cv2.imshow(self.name,frame)
+                    cv2.moveWindow(self.name,start_x,25)
                     cv2.waitKey(self.timestep)
                 # elif ret == False and current_id==video_id.value: # video finished and no request for playing
                     #video_id.value=default

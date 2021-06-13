@@ -125,13 +125,13 @@ class Label():
         self.article_indefinite=self.__get_article_indefinite()
 
     def __is_singular(self):
-        if self.label.split()[0][-1]=="ie":
+        if self.label.split()[0][-1]=="i":
             return False
         else:
             return True    
 
     def __get_gender(self):
-        if self.label[-1].split()[0] in "ae":
+        if self.label[-1].split()[0] == "a":
             return "F"
         else:
             return "M"
