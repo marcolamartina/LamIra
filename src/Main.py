@@ -9,13 +9,13 @@ import sys
 
 
 language="it-IT"
-verbose=False
+verbose=True
 show_video=True
 show_depth=True
 show_merged=True
 show_assistent=True
 play_audio=True
-microphone=True
+microphone=False
 device_type="cpu"
 
 def logic_start(close, video_id, lock, videos, default, name, image, depth, merged, roi, i_shape, d_shape, m_shape, newstdin, calibration):

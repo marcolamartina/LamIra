@@ -162,7 +162,7 @@ class Grounding:
         labels=self.classify_features(features,space)
         if space=="general":
             description=[self.classify_features(features,s)[0][0] for s in ["color","shape","texture"]]
-            return labels,description
+            return labels,description,features
         if self.verbose and space=="color" and test:
             print_colors(features['color'])         
         return labels,None,features
