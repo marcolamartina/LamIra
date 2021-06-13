@@ -59,7 +59,7 @@ class Text_production:
         return output,self.predictions.prediction_type
 
     def to_text_subject(self,subjects):
-        subjects_list=[" ".join(self.spaces[i],s) for i,s in enumerate(subjects) if s ]
+        subjects_list=[" ".join([self.spaces[i],s]) for i,s in enumerate(subjects) if s ]
         outputs=["Ho appena imparato","Ho imparato","Ho appreso"]
         output=random.choice(outputs) 
         output+=" "+self.concatenate_labels(subjects_list)

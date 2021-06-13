@@ -135,7 +135,8 @@ class Controller:
                     label_confirmed=self.verify_confirm(confirm_response)
                 if label_confirmed==2:
                     continue
-
+                
+                self.thinking()
                 for i,l in enumerate(labels):
                     if l:    
                         self.grounding.learn(roi,self.spaces[i]+"_training",l)
