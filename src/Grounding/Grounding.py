@@ -206,7 +206,7 @@ class Grounding:
         return features
 
     def learn_features(self,intent,label,feature):
-        space_label=intent[:-9]    
+        space_label=intent[:-6]    
         self.spaces.insert(space_label,label,feature)
 
     def load_knowledge(self):
