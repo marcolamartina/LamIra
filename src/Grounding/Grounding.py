@@ -165,7 +165,7 @@ class Grounding:
             return labels,description
         if self.verbose and space=="color" and test:
             print_colors(features['color'])         
-        return labels,None
+        return labels,None,features
 
     def extract_general_features(self,features):
         return normalize_color(features["color"])+features["shape"]+features["texture"]      
@@ -204,7 +204,10 @@ class Grounding:
         feature=features[space_label]
         self.spaces.insert(space_label,label,feature)
         return features
-  
+
+    def learn_features(self,intent,label,feature):
+        space_label=intent[:-9]    
+        self.spaces.insert(space_label,label,feature)
 
     def load_knowledge(self):
         space_names = [ f.name for f in os.scandir(data_dir_knowledge) if f.is_dir() ] # ["color","shape","texture","general"]

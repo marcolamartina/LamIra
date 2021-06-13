@@ -56,7 +56,7 @@ class Text_production:
                 output+=", poiché è di colore {}, è a forma di {} ed è di un materiale {}".format(*description)   
         if self.verbose:
             print("Best predictions: {}".format([(p.label.label,round(p.confidence,4)) for p in self.predictions.best_predictions]))
-        return output
+        return output,self.predictions.prediction_type
 
     def to_text_subject(self,subjects):
         subjects_list=[" ".join(self.spaces[i],s) for i,s in enumerate(subjects) if s ]

@@ -36,113 +36,118 @@ class Controller:
         self.default=default
         self.calibration=calibration
         self.spaces=["general","color","shape","texture"]
+        self.confirm_query={"unsure_answer":"È corretto?", "dubious_answer":"Cosa è in realtà?", "cannot_answer":"Potresti dirmi come si chiama?"}
+        self.negative_sentences=["no","negativo"]
+        self.cancel_sentences=["annulla","esci","niente","nulla"]
 
         # welcome message
         self.say("welcome")
 
     def query_mode(self):
         while True:
-            if self.close.value==1:
-                self.say("quit")
-                return
-            query=self.get_input("query")
-            if "calibrazione" in query:
-                self.calibration.value=1
-                self.say_text("Calibrazione completata")
-                continue
-            if "reset" in query:
-                self.grounding.reset_knowledge()
-                self.say_text("Reset delle conoscenze completato")
-                continue    
-            intents,best_intent=self.intent_classification.predict(query)
-            if not self.check_intent(best_intent):
-                self.say("cannot_answer")
-                self.query_mode()
-                return
-            best_intent=best_intent[0]    
-            if best_intent=="exit":
-                self.say("quit")
-                return
-            if best_intent=="training_mode":
-                self.say("training_mode")
-                self.intent_classification.set_class_type("training")
-                self.training_mode()
-                return      
-            self.thinking()     
-            #image=self.kinect.get_image_example()
-            #image,depth=self.kinect.get_image()
-            #merged=self.kinect.get_merged()
-            rois=self.kinect.get_image_roi()
             try:
+                if self.close.value==1:
+                    self.say("quit")
+                    return
+                query=self.get_input("query")
+                if "calibrazione" in query:
+                    self.calibration.value=1
+                    self.say_text("Calibrazione completata")
+                    continue
+                if "reset" in query:
+                    self.grounding.reset_knowledge()
+                    self.say_text("Reset delle conoscenze completato")
+                    continue    
+                intents,best_intent=self.intent_classification.predict(query)
+                if not self.check_intent(best_intent):
+                    self.say("cannot_answer")
+                    self.query_mode()
+                    return
+                best_intent=best_intent[0]    
+                if best_intent=="exit":
+                    self.say("quit")
+                    return
+                if best_intent=="training_mode":
+                    self.say("training_mode")
+                    self.intent_classification.set_class_type("training")
+                    self.training_mode()
+                    return      
+                self.thinking()     
+                rois=self.kinect.get_image_roi()
                 roi=max(rois,key=lambda x:np.count_nonzero(x[1]))
-                predictions,description=self.grounding.classify(roi,best_intent)
-                text=self.text_production.to_text_predictions(best_intent,predictions,description)
+                predictions,description,features=self.grounding.classify(roi,best_intent)
+                text,prediction_type=self.text_production.to_text_predictions(best_intent,predictions,description)
                 self.say_text(text)
+                if prediction_type!="sure_answer":
+                    confirm_response=self.get_input("confirm_label",self.confirm_query[prediction_type])
+                    label_confirmed,label_correct=self.verify_prediction(confirm_response)
+                    if label_confirmed==2:
+                        continue
+                    if label_correct:
+                        self.grounding.learn_features(best_intent,label_correct,features)
+
+                
+            except ValueError:
+                self.say_text("Non è stato rilevato nessun oggetto")     
             except:
                 self.log(sys.exc_info()[1])
                 self.say("error")
-                self.say_text("Non è stato rilevato nessun oggetto")
                 continue
                 
 
     def training_mode(self):
         while True:
-            if self.close.value==1:
-                self.say("quit")
-                return
-            request=self.get_input("training_request")
-            if "calibrazione" in request:
-                self.calibration.value=1
-                self.say_text("Calibrazione completata")
-                continue
-            if "reset" in request:
-                self.grounding.reset_knowledge()
-                self.say_text("Reset delle conoscenze completato")
-                continue    
-            intents,best_intent=self.intent_classification.predict(request)
-            if not self.check_intent(best_intent):
-                self.say("cannot_answer")
-                self.training_mode()
-                return
-            best_intent=best_intent[0]    
-            if best_intent=="exit":
-                self.say("quit")
-                return
-            if best_intent=="query_mode":
-                self.say("query_mode")
-                self.intent_classification.set_class_type("query")
-                self.query_mode()
-                return      
-            self.thinking()   
-            #image=self.kinect.get_image_example()
-            #image,depth=self.kinect.get_image()
-            #merged=self.kinect.get_merged()
-            rois=self.kinect.get_image_roi()
             try:
-                roi=max(rois,key=lambda x:np.count_nonzero(x[1]))
-            except:
-                self.log(sys.exc_info()[1])
-                self.say("error")
-                self.say_text("Non è stato rilevato nessun oggetto")
-                continue    
+                if self.close.value==1:
+                    self.say("quit")
+                    return
+                request=self.get_input("training_request")
+                if "calibrazione" in request:
+                    self.calibration.value=1
+                    self.say_text("Calibrazione completata")
+                    continue
+                if "reset" in request:
+                    self.grounding.reset_knowledge()
+                    self.say_text("Reset delle conoscenze completato")
+                    continue    
+                intents,best_intent=self.intent_classification.predict(request)
+                if not self.check_intent(best_intent):
+                    self.say("cannot_answer")
+                    self.training_mode()
+                    return
+                best_intent=best_intent[0]    
+                if best_intent=="exit":
+                    self.say("quit")
+                    return
+                if best_intent=="query_mode":
+                    self.say("query_mode")
+                    self.intent_classification.set_class_type("query")
+                    self.query_mode()
+                    return      
+                self.thinking()   
+                rois=self.kinect.get_image_roi()
+                roi=max(rois,key=lambda x:np.count_nonzero(x[1]))  
 
-            label_confirmed=0
-            while not label_confirmed:
-                labels=self.get_label_input(best_intent)
-                confirm_response=self.get_input("confirm_label","Vuoi confermare {}?".format(self.concatenate_labels(labels)))
-                label_confirmed=self.verify_confirm(confirm_response)
-            if label_confirmed==2:
-                continue
-#labels=["palla","rosso",None,"liscio"]
-            try:
+                label_confirmed=0
+                while not label_confirmed:
+                    labels=self.get_label_input(best_intent)
+                    confirm_response=self.get_input("confirm_label","Vuoi confermare {}?".format(self.concatenate_labels(labels)))
+                    label_confirmed=self.verify_confirm(confirm_response)
+                if label_confirmed==2:
+                    continue
+
                 for i,l in enumerate(labels):
                     if l:    
                         self.grounding.learn(roi,self.spaces[i]+"_training",l)
                 text=self.text_production.to_text_subject(labels)
                 self.say_text(text)
+            
+            except ValueError:
+                self.say_text("Non è stato rilevato nessun oggetto")     
             except:
                 self.log(sys.exc_info()[1])
                 self.say("error")
+                continue  
     
     def concatenate_labels(self,labels):
         labels=[i for i in labels if i]
@@ -157,14 +162,30 @@ class Controller:
         - 2 for cancel the operation 
 
         """
-        negative=["no","negativo"]
-        cancel=["annulla","esci","niente","nulla"]
         for n in confirm_response.lower().split(" "):
-            if n in cancel:
+            if n in self.cancel_sentences:
                 return 2
-            elif n in negative:
+            elif n in self.negative_sentences:
                 return 0
         return 1
+
+    def verify_prediction(self,confirm_response):
+        """Accepts a text and return an integer that can be:
+        - 0 if the response is negative
+        - 1 if the response is affermative
+        - 2 for cancel the operation 
+
+        and if the response is negative, return also the correct label
+        """
+        l=confirm_response.lower().split(" ")
+        for n in l:
+            if n in self.cancel_sentences:
+                return 2,None
+            elif n in self.negative_sentences:
+                return 0,l[-1]
+        return 1,None  
+
+        
                
 
     def thinking(self):
@@ -193,8 +214,8 @@ class Controller:
     def get_label_input(self,intent):
         request_type=intent.split("_")[0]+"_label_query"
         user_input=self.get_input(request_type)
-        result=[user_input[0]]
         input_list=user_input.split(" ")
+        result=[input_list[0]]
         for l in ["colore","forma","tessitura"]:
             if l in input_list:
                 result.append(input_list[input_list.index(l)+1])
