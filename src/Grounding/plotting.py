@@ -78,7 +78,7 @@ for space_label,X in data["X"].items():
     data["X_transformed"][space_label] = embedding.fit_transform(X)
     np.save(data_dir_plot+"/X_trasformed_"+space_label+".npy",data["X_transformed"][space_label]) 
 '''    
-    
+
 # Plotting
 show_space(data["X_transformed"],data["y"],legend=True)
 plt.show()
