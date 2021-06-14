@@ -80,10 +80,6 @@ if [[ "$OSTYPE" == "linux-gnu"* ]]; then
     sudo apt-get install libpcl-dev -y
     sudo apt install gcc-10 gcc-10-base gcc-10-doc g++-10
     sudo apt install libstdc++-10-dev libstdc++-10-doc
-    git clone https://github.com/Sirokujira/python-pcl.git
-    cd python-pcl
-    python3 setup.py build_ext -i # Setup modificato
-    python3 setup.py install
 elif [[ "$OSTYPE" == "darwin"* ]]; then
     # don't work
     brew install pcl
