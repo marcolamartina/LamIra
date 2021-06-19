@@ -6,9 +6,11 @@ from multiprocessing import Process, Value, Lock, Array
 import os
 import numpy as np
 import sys
-
+import argparse
 
 language="it-IT"
+device_type="cpu"
+
 verbose=False
 show_video=True
 show_depth=True
@@ -16,8 +18,8 @@ show_merged=True
 show_assistent=True
 play_audio=True
 transcription=True
-microphone=False
-device_type="cpu"
+microphone=True
+
 
 def logic_start(close, video_id, lock, videos, default, name, image, depth, merged, roi, i_shape, d_shape, m_shape, newstdin, calibration):
     controller=Controller(newstdin, close, verbose, show_assistent, play_audio, transcription, microphone, language,device_type,video_id, lock, videos, default, name, image, depth, merged, roi, i_shape, d_shape, m_shape, calibration)
@@ -43,6 +45,28 @@ def get_video_path():
         os._exit(1)  
 
 def main():
+    parser = argparse.ArgumentParser()
+    parser.add_argument('-v','--verbose', action='store_true',help="activate verbose mode")
+    parser.add_argument('-V','--video', action='store_false',help="disable video RGB")
+    parser.add_argument('-D','--depth', action='store_false',help="disable depth")
+    parser.add_argument('-M','--merged', action='store_false',help="disable image segmentated")
+    parser.add_argument('-A','--assistent', action='store_false',help="disable assistent")
+    parser.add_argument('-a','--audio', action='store_false',help="disable audio output")
+    parser.add_argument('-t','--transcription', action='store_false',help="disable transcription of audio input")
+    parser.add_argument('-m','--microphone', action='store_false',help="disable audio output")
+    args = parser.parse_args()
+
+    global verbose, show_video, show_depth, show_merged, show_assistent, play_audio, transcription, microphone
+    verbose=args.verbose
+    show_video=args.video
+    show_depth=args.depth
+    show_merged=args.merged
+    show_assistent=args.assistent
+    play_audio=args.audio
+    transcription=args.transcription
+    microphone=args.microphone
+
+
     name="LAMIRA"
     videos,default=get_video_path()
     video_id = Value('i',  default)
@@ -77,7 +101,7 @@ def main():
     if show_assistent:
         video_player = Process(target=video_player_start,args=(close, video_id, lock, videos, default, name))
     kinect_video_player = Process(target=kinect_video_player_start,args=(close, image, depth, merged, roi, i_shape, d_shape, m_shape, show_video, show_depth, show_merged, calibration))
-    
+
     logic.start()
     if show_assistent:
         video_player.start()

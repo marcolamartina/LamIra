@@ -42,7 +42,8 @@ class Controller:
         self.cancel_sentences=["annulla","esci","niente","nulla"]
 
         # welcome message
-        self.say("welcome")
+        if self.close.value!=1:
+            self.say("welcome")
 
     def query_mode(self):
         while True:
