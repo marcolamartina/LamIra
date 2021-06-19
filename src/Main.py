@@ -53,7 +53,7 @@ def main():
     parser.add_argument('-A','--assistent', action='store_false',help="disable assistent")
     parser.add_argument('-a','--audio', action='store_false',help="disable audio output")
     parser.add_argument('-t','--transcription', action='store_false',help="disable transcription of audio input")
-    parser.add_argument('-m','--microphone', action='store_false',help="disable audio output")
+    parser.add_argument('-m','--microphone', action='store_false',help="disable vocal input")
     args = parser.parse_args()
 
     global verbose, show_video, show_depth, show_merged, show_assistent, play_audio, transcription, microphone
