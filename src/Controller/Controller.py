@@ -138,6 +138,9 @@ class Controller:
                 label_confirmed=0
                 while not label_confirmed:
                     labels=self.get_label_input(best_intent)
+                    if not labels:
+                        label_confirmed=2
+                        break
                     confirm_response=self.get_input("confirm_label","Vuoi confermare {}?".format(self.concatenate_labels(labels)))
                     label_confirmed=self.verify_confirm(confirm_response)
                 if label_confirmed==2:
@@ -229,6 +232,8 @@ class Controller:
     def get_label_input(self,intent):
         request_type=intent.split("_")[0]+"_label_query"
         user_input=self.get_input(request_type)
+        if self.verify_confirm(user_input)==2:
+            return None
         input_list=user_input.split(" ")
         if intent.split("_")[0]=="color":
             input_list=self.concatenate_color(input_list)
