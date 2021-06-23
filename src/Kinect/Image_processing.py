@@ -76,7 +76,6 @@ class Image_processing:
         im[-border_size[3]:, :]=v #Bottom
         return im
 
-
     def remove_floor(self, original, output, border_size=10, point=None, tolerance=10):
         if not point:
             point = self.get_point(original,border_size)

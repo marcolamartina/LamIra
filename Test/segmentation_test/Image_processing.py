@@ -1,15 +1,17 @@
-from PIL.Image import merge
 import numpy as np
 import cv2
 
 class Image_processing:
+    def __init__(self, depth_base):
+        self.depth_base = depth_base
 
     def homography(self,color,depth):
         h=self.get_homography()
         return self.apply_homography(color,h,depth.shape)
 
     def segmentation(self, color, depth):
-        mask=self.get_mask(depth)
+        #mask, mask_region=self.get_mask(depth) #Adaptive method for find mask
+        mask=self.get_mask_by_sub(depth) #Use a image calibration to get mask
         merged=self.merge(color,mask)
         return merged,mask
 
@@ -59,6 +61,21 @@ class Image_processing:
     def crop(self, image, border_size=10):
         return image[border_size:image.shape[0]-border_size, border_size:image.shape[1]-border_size]
 
+    def border_padding(self, image, border_size=(20,20,20,20)):
+        '''Pad image
+        :image: input image
+        :border_size: (left,right,upper,bottom)
+
+        :returns: image with border padded 
+        '''
+        im=np.copy(image)
+        v=0
+        im[:, 0:border_size[0]]=v #Left
+        im[:, -border_size[1]:]=v #Right
+        im[0:border_size[2], :]=v #Upper
+        im[-border_size[3]:, :]=v #Bottom
+        return im
+
     def remove_floor(self, original, output, border_size=10, point=None, tolerance=10):
         if not point:
             point = self.get_point(original,border_size)
@@ -72,6 +89,16 @@ class Image_processing:
         label=labels[point[0],point[1]]
         result[labels==label]=0
         return result
+
+    def get_mask_by_sub(self, depth, threshold=5):
+        d=depth.astype(np.float32)
+        b=self.depth_base.astype(np.float32)
+        mask=np.abs(d-b)
+        mask[mask<=threshold] = 0
+        mask[mask>threshold] = 255
+        mask=mask.astype(np.uint8)
+        mask = self.border_padding(mask)
+        return cv2.medianBlur(mask, 3)
 
     def get_mask(self,depth):
         # Remove background
@@ -125,7 +152,15 @@ class Image_processing:
     def merge(self,image,depth):
         i=image.copy()
         i[depth < 255]=0
-        return i           
+        return i
+
+    def apply_mask(self,mask,image):
+        i=image.copy()
+        if len(image.shape)==2:
+            i[mask == 0]=0
+        else:
+            i[mask == 0]=np.array([0,0,0])       
+        return i    
 
 
 def main(mod):
@@ -270,21 +305,68 @@ def main(mod):
         cv2.destroyAllWindows()
 
     def processing_video():
-        ip=Image_processing()
         #Do until esc pressed
         print("If you want to save the actual Roi click the button 'C'")
         path_save_roi = os.path.dirname(__file__)
         path_save_roi = os.path.join(path_save_roi, "..", "..","Datasets","rgbd-dataset","captured","captured_1")
+
+        #Temp
+        path_save_roi = os.path.dirname(__file__)
+        path_save_roi = os.path.join(path_save_roi, "..", "..","Media","Images")
+        depth_file=path_save_roi+"/without_homografy_depth.png"
+        color_file=path_save_roi+"/without_homografy_color.png"
+        depth_base_file=path_save_roi+"/depth_without_object.png"
+        depth_base= cv2.imread(depth_base_file,0) # load
+
+
+        ip=Image_processing(depth_base)
+        
         files = ([int(i.split("_")[-2]) for i in os.listdir( path_save_roi) if i.endswith("_crop.png")])
         if len(files)==0:
             counter=0
         else:
             counter=max(files)+1
         while(1):
-            depth=get_depth()
-            color=get_video()
+            #depth=get_depth()
+            #color=get_video()
+
+            #Temp
+            depth = cv2.imread(depth_file,0) # load
+            color = cv2.imread(color_file) # load
+            
+
             color=ip.homography(color,depth)
-            merged,mask=ip.segmentation(color,depth)
+
+            ''' #For Slicing
+            for i in range(1, 6):
+                depth_slice=ip.select_slices(depth, start=i, slices_selected=1)
+                color_slice=ip.apply_mask(depth_slice, color)
+                cv2.imwrite(path_save_roi+"/color_slices_"+str(i)+".png", color_slice)   
+                cv2.imwrite(path_save_roi+"/depth_slices_"+str(i)+".png", depth_slice)   
+            exit(0)
+            '''
+
+            merged,mask=ip.segmentation(color,depth) 
+
+            
+            contours, _ = cv2.findContours(mask, cv2.RETR_EXTERNAL,cv2.CHAIN_APPROX_NONE)
+            contours=max(contours,key=lambda x: x.shape[0])
+            color_with_contours=color.copy()
+            cv2.drawContours(color_with_contours, [contours], -1, 150, 2)
+            #color[m==150]=(0,0,255)
+
+            '''
+            contours, _=cv2.findContours(mask, cv2.RETR_EXTERNAL,cv2.CHAIN_APPROX_NONE)
+            contours_mask = np.zeros(mask.shape)
+            cv2.drawContours(contours_mask, contours, -1, (0,255,0), 3)
+            '''
+            cv2.imshow("merged", merged)
+            cv2.waitKey(0)
+            cv2.imwrite(path_save_roi+"/second_apporch_segmentation_result.png", merged)  
+
+
+            exit(0)
+
             globals()["color"]=color
             globals()["depth"]=depth
             globals()["merged"]=merged
