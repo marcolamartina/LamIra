@@ -219,19 +219,28 @@ class Controller:
                 self.say("undefined")      
         return request 
 
+    def concatenate_color(self,text_list):
+        if "e" in text_list:
+            i=text_list.index("e")
+            text_list=["-".join(text_list[:i]+[text_list[i+1]])]
+        return text_list
+
+
     def get_label_input(self,intent):
         request_type=intent.split("_")[0]+"_label_query"
         user_input=self.get_input(request_type)
         input_list=user_input.split(" ")
+        if intent.split("_")[0]=="color":
+            input_list=self.concatenate_color(input_list)
         result=[input_list[0]]
         spaces=[["colore"],["forma di"],["materiale","tessitura"]]
-        for s in spaces:
+        for j,s in enumerate(spaces):
             for l in s:
                 if l in input_list:
                     label=l
                     break
             if np.any([l in input_list for l in s]):
-                result.append(input_list[input_list.index(label)+1])
+                result.append(input_list[input_list.index(label)+1]) 
         return result                      
 
     def run(self):
