@@ -36,15 +36,34 @@ for dimension in possible_dimensions:
     y_dim.append(time_elapsed)
     print(time_elapsed)
 
-plt.subplot(2, 1, 1)
-plt.title("Random Forest Benchmark")
+output_file=__file__[:-3]+".pdf"
+filename=__file__.split("/")[-1][:-3]
+title=" ".join(filename.split("_"))
+
+ax=plt.subplot(2, 1, 1)
+#plt.title(title)
 plt.xlabel("Sample Dimension")
 plt.ylabel("Time(s)")
-plt.plot(x_sample,y_sample)
+plt.plot(x_sample,y_sample, color=[0,0,0], linewidth=0.8)
 
-plt.subplot(2, 1, 2)
+ax.spines['top'].set_visible(False)
+ax.spines['right'].set_visible(False)
+ax.get_xaxis().tick_bottom()
+ax.get_yaxis().tick_left()
+
+ax=plt.subplot(2, 1, 2)
 plt.xlabel("Dimensionality")
 plt.ylabel("Time(s)")
-plt.plot(x_dim,y_dim)
+plt.plot(x_dim,y_dim, color=[0,0,0], linewidth=0.8)
+plt.tight_layout()
 
-plt.show()    
+
+ax.spines['top'].set_visible(False)
+ax.spines['right'].set_visible(False)
+ax.get_xaxis().tick_bottom()
+ax.get_yaxis().tick_left()
+
+plt.savefig(output_file, bbox_inches="tight")
+#plt.savefig("/Users/marco/Desktop/{}.pdf".format(filename), bbox_inches="tight")
+#plt.show()
+    
