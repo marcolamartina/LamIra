@@ -90,6 +90,20 @@ def main():
     import random
     from Grounding import round_list
 
+    path_save_roi = os.path.dirname(__file__)
+    path_save_roi = os.path.join(path_save_roi, "..", "..","Media","Images")
+    img_file=path_save_roi+"/second_apporch_segmentation_result.png"
+    img=cv2.imread(img_file)
+
+    e=Color_extractor()
+    centroids=e.extract(img)
+    print_colors(centroids,img)
+    print("Color descriptor: {}".format(round_list(centroids)))
+    exit(0)
+
+
+
+
     def apply_mask(mask,image):
         i=image.copy()
         if len(image.shape)==2:
