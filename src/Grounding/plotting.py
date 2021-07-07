@@ -32,15 +32,24 @@ def show_space(X,y,space_label="general",legend=False):
     fig = plt.figure(num="Knowledge Space",figsize=(8,8))
     X_current=X[space_label]
     y_current=y[space_label]
-    test_set=["aglio","cipolla","spazzolino"]
+    test_sets={ "general":["aglio","cipolla","spazzolino"],
+                "color":["grigio","nero","rosso"],
+                "shape":["semisfera","sfera","parallelepipedo"]}
+    #test_set=["aglio","cipolla","spazzolino"]
+
+    test_set=test_sets[space_label]
+    #c={"rosso":(1,0,0),"nero":(0,0,0),"grigio":(0.5,0.5,0.5)}
     color={}
     ax = fig.add_subplot(1,1,1, projection="3d")
     ax.set_title(space_label)
     for point,label in zip(X_current,y_current):
-        if label not in test_set or (point[0]<-10 and point[1]>-2):
+        #if label not in test_set or (point[0]<-10 and point[1]>-2): #general
+        #if label not in test_set or (point[0]>-0.05 and point[1]>-0.1 ) or point[2]>0.10: #color
+        if label not in test_set or (point[0]<-10 and point[1]>-2): #general   
             continue
         if label not in color.keys():
             color[label]=[random.random() for _ in range(3)]
+            #color[label]=c[label]
             #ax.text(point[0],point[1],point[2], label, size=10, zorder=1, color='k')
             if legend:
                 ax.plot(point[0],point[1],point[2], "o", color=color[label],label=label) 
@@ -80,7 +89,7 @@ for space_label,X in data["X"].items():
 '''    
 
 # Plotting
-show_space(data["X_transformed"],data["y"],legend=True)
+show_space(data["X_transformed"],data["y"],legend=True,space_label="general")
 plt.show()
 
  
