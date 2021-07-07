@@ -44,7 +44,7 @@ title=" ".join(filename.split("_"))
 
 ax=plt.subplot(2, 1, 1)
 #plt.title(title)
-plt.xlabel("Sample Dimension")
+plt.xlabel("Samples")
 plt.ylabel("Time(s)")
 plt.plot(x_sample,y_sample, color=[0,0,0], linewidth=0.8)
 

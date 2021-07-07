@@ -31,11 +31,11 @@ from sklearn.metrics import confusion_matrix, ConfusionMatrixDisplay
 
 """## Parameters"""
 
-new_data=False
+new_data=True
 load_old_params=False
 save_params=False
 selected_space=False
-space="texture"
+space="color"
 dictionary_index={"shape":0,"color":1,"texture":2}
 
 

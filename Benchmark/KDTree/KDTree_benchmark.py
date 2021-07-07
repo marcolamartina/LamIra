@@ -38,7 +38,7 @@ title=" ".join(filename.split("_"))
 
 ax=plt.subplot(2, 1, 1)
 #plt.title(title)
-plt.xlabel("Sample Dimension")
+plt.xlabel("Samples")
 plt.ylabel("Time(ms)")
 plt.plot(x_sample,y_sample, color=[0,0,0], linewidth=0.8)
 
@@ -60,6 +60,6 @@ ax.get_xaxis().tick_bottom()
 ax.get_yaxis().tick_left()
 
 plt.savefig(output_file, bbox_inches="tight")
-#plt.savefig("/Users/marco/Desktop/{}.pdf".format(filename), bbox_inches="tight")
+plt.savefig("/Users/marco/Desktop/{}.pdf".format(filename), bbox_inches="tight")
 #plt.show()   
 
