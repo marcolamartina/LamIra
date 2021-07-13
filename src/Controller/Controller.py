@@ -4,7 +4,8 @@ from Grounding.Grounding import Grounding
 from Intent_classification.Intent_classification import BERT_Arch,Intent_classification
 from Text_production.Text_production import Text_production
 from Text_to_speech.Text_to_speech import Text_to_speech
-from Kinect.Kinect import Kinect
+from Sensor.Kinect import Kinect
+from Sensor.RealSense import RealSense
 import os
 import random
 import sys
@@ -13,7 +14,7 @@ import numpy as np
 
 
 class Controller:
-    def __init__(self, newstdin=sys.stdin, close=None, verbose=False, show_assistent=True, play_audio=True, transcription=True, microphone=False, language="it-IT",device_type="cpu", video_id=None, lock=None, videos=None, default=None, name="LAMIRA", image=None, depth=None, merged=None, roi=None, i_shape=None, d_shape=None, m_shape=None, calibration=None):
+    def __init__(self, newstdin=sys.stdin, close=None, verbose=False, show_assistent=True, play_audio=True, transcription=True, microphone=False, language="it-IT",device_type="cpu", video_id=None, lock=None, videos=None, default=None, name="LAMIRA", image=None, depth=None, merged=None, roi=None, i_shape=None, d_shape=None, m_shape=None, calibration=None, realsense=None):
         sys.stdin = os.fdopen(newstdin)
         self.name=name
         self.close=close
@@ -26,7 +27,10 @@ class Controller:
         self.grounding=Grounding(verbose)
         self.text_production=Text_production(verbose)
         self.text_to_speech=Text_to_speech(verbose,language,play_audio,transcription)
-        self.kinect=Kinect(verbose, image, depth, merged, roi, i_shape, d_shape, m_shape)
+        if realsense:
+            self.sensor=RealSense(verbose, image, depth, merged, roi, i_shape, d_shape, m_shape)
+        else:
+            self.sensor=Kinect(verbose, image, depth, merged, roi, i_shape, d_shape, m_shape)    
         if microphone:
             self.speech_to_text=Speech_to_text(verbose,language)
 
@@ -75,7 +79,7 @@ class Controller:
                     self.training_mode()
                     return      
                 self.thinking()     
-                rois=self.kinect.get_image_roi()
+                rois=self.sensor.get_image_roi()
                 roi=max(rois,key=lambda x:np.count_nonzero(x[1]))
                 predictions,description,features=self.grounding.classify(roi,best_intent)
                 text,prediction_type=self.text_production.to_text_predictions(best_intent,predictions,description)
@@ -132,7 +136,7 @@ class Controller:
                     self.query_mode()
                     return      
                 self.thinking()   
-                rois=self.kinect.get_image_roi()
+                rois=self.sensor.get_image_roi()
                 roi=max(rois,key=lambda x:np.count_nonzero(x[1]))  
 
                 label_confirmed=0
