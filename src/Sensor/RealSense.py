@@ -1,75 +1,22 @@
-
+import pyrealsense2 as rs
 import numpy as np
 import cv2
 import os
 import sys
-import signal
 import random
 import time
 if __package__:
     from Sensor.Image_processing import Image_processing
 else:
     from Image_processing import Image_processing
-from contextlib import contextmanager
-
-accept_color =  {   
-                "OFF":0, 
-                "GREEN":1,
-                "RED":2, 
-                "YELLOW":3, 
-                "BLINK_GREEN":4, 
-                "BLINK_RED_YELLOW":5
-                }
-accept_positions =  {
-                    "DOWN":-27,
-                    "CENTER":0,
-                    "UP":27
-                    }
-
 
 COLOR_VIDEO_RESOLUTION=(480,640,3)
 DEPTH_VIDEO_RESOLUTION=(480,640)
 
-def fileno(file_or_fd):
-    fd = getattr(file_or_fd, 'fileno', lambda: file_or_fd)()
-    if not isinstance(fd, int):
-        raise ValueError("Expected a file (`.fileno()`) or a file descriptor")
-    return fd
 
-@contextmanager
-def stderr_redirected(to=os.devnull, stderr=None):
-    if stderr is None:
-       stderr = sys.stderr
+data_dir_images =os.path.join(os.path.dirname(__file__),"..","..","Media","Images")  
 
-    stderr_fd = fileno(stderr)
-    # copy stderr_fd before it is overwritten
-    #NOTE: `copied` is inheritable on Windows when duplicating a standard stream
-    with os.fdopen(os.dup(stderr_fd), 'wb') as copied: 
-        stderr.flush()  # flush library buffers that dup2 knows nothing about
-        try:
-            os.dup2(fileno(to), stderr_fd)  # $ exec >&to
-        except ValueError:  # filename
-            with open(to, 'wb') as to_file:
-                os.dup2(to_file.fileno(), stderr_fd)  # $ exec > to
-        try:
-            yield stderr # allow code to be run with the redirected stderr
-        finally:
-            # restore stderr to its previous value
-            #NOTE: dup2 makes stderr_fd inheritable unconditionally
-            stderr.flush()
-            os.dup2(copied.fileno(), stderr_fd)  # $ exec >&copied
-
-
-
-try:
-    from google.colab import drive
-    drive.mount("/content/drive/")
-    data_dir_images = "/content/drive/My Drive/Tesi/Media/Images/"
-except:
-    data_dir_images =os.path.join(os.path.dirname(__file__),"..","..","Media","Images")  
-
-
-class Kinect:
+class RealSense:
     def __init__(self, verbose, image, depth, merged, roi, i_shape, d_shape, m_shape):
         self.verbose=verbose
         self.image=image 
@@ -124,7 +71,7 @@ class Kinect:
 
 
     
-class Video_player:
+class Sensor_video_player:
     def __init__(self, close, i_arr, d_arr, m_arr, roi, i_shape, d_shape, m_shape, show_video, show_depth, show_merged, calibration):
         self.i_arr=i_arr
         self.d_arr=d_arr
@@ -137,12 +84,8 @@ class Video_player:
         self.show_depth=show_depth
         self.show_merged=show_merged
         self.close=close
-        self.ctx, self.dev= self.__init_kinect__()        
-        self.set_led('GREEN')
-        self.set_tilt_degs('UP')
-        self.set_tilt_degs('DOWN')
-        freenect.close_device(self.dev)
-        freenect.shutdown(self.ctx)
+        self.pipeline = self.__init_sensor__()
+
         self.calibration=calibration
         self.image_processing=Image_processing(self.get_depth_image())                
 
@@ -167,45 +110,48 @@ class Video_player:
             cv2.namedWindow('Merged')
             #cv2.imshow('Merged', start_im)
             cv2.moveWindow('Merged',start_x+2*COLOR_VIDEO_RESOLUTION[1],window_y)   
-        with stderr_redirected(to=os.devnull):
-            while True:
-                try:
-                    if self.close.value==1: 
-                        freenect.sync_stop()
-                        return
-                    if self.calibration.value==1:
-                        self.image_processing.depth_base=self.get_depth_image()
-                        self.calibration.value=0
-                        continue
-                    i = array_to_image(self.i_arr,self.i_shape)
-                    d = array_to_image(self.d_arr,self.d_shape)
-                    m = array_to_image(self.m_arr,self.m_shape)
-                    depth=self.get_depth_image()
-                    image=self.get_color_image()
-                    if depth is None or image is None:
-                        return
-                    image=self.image_processing.homography(image,depth)
-                    merged,mask=self.image_processing.segmentation(image,depth)
-                    d[...]=depth
-                    i[...]=image
-                    m[...]=merged
-                    merged=self.get_roi(mask,merged)
-                    if self.show_depth:
-                        cv2.imshow('Depth', depth)
-                        cv2.moveWindow('Depth',start_x+COLOR_VIDEO_RESOLUTION[1],window_y)
-                    if self.show_video:   
-                        cv2.imshow('Video', image)
-                        cv2.moveWindow('Video',start_x , window_y)
-                    if self.show_merged:   
-                        cv2.imshow('Merged', merged)    
-                        cv2.moveWindow('Merged',start_x+2*COLOR_VIDEO_RESOLUTION[1],window_y)   
-                    if (self.show_depth or self.show_video or self.show_merged):
-                        cv2.waitKey(1)
-                                
-                except KeyboardInterrupt:
-                    freenect.sync_stop()
-                    self.__del__() 
-                    os._exit(1)   
+        while True:
+            try:
+                if self.close.value==1: 
+                    return
+                if self.calibration.value==1:
+                    self.image_processing.depth_base=self.get_depth_image()
+                    self.calibration.value=0
+                    continue
+                i = array_to_image(self.i_arr,self.i_shape)
+                d = array_to_image(self.d_arr,self.d_shape)
+                m = array_to_image(self.m_arr,self.m_shape)
+                frames = self.pipeline.wait_for_frames()
+                depth_frame = frames.get_depth_frame()
+                color_frame = frames.get_color_frame()
+                if not depth_frame or not color_frame:
+                    return
+
+                # Convert images to numpy arrays
+                depth = np.asanyarray(depth_frame.get_data())
+                image = np.asanyarray(color_frame.get_data())
+                
+                image=self.image_processing.homography(image,depth)
+                merged,mask=self.image_processing.segmentation(image,depth)
+                d[...]=depth
+                i[...]=image
+                m[...]=merged
+                merged=self.get_roi(mask,merged)
+                if self.show_depth:
+                    cv2.imshow('Depth', depth)
+                    cv2.moveWindow('Depth',start_x+COLOR_VIDEO_RESOLUTION[1],window_y)
+                if self.show_video:   
+                    cv2.imshow('Video', image)
+                    cv2.moveWindow('Video',start_x , window_y)
+                if self.show_merged:   
+                    cv2.imshow('Merged', merged)    
+                    cv2.moveWindow('Merged',start_x+2*COLOR_VIDEO_RESOLUTION[1],window_y)   
+                if (self.show_depth or self.show_video or self.show_merged):
+                    cv2.waitKey(1)
+                            
+            except KeyboardInterrupt:
+                self.__del__() 
+                os._exit(1)   
 
     def get_roi(self,mask,output,tollerance=10):
         contours, hierarchy = cv2.findContours(mask,cv2.RETR_EXTERNAL,cv2.CHAIN_APPROX_NONE)[-2:]
@@ -236,100 +182,49 @@ class Video_player:
         
 
     def get_depth_image(self):
-        f=freenect.sync_get_depth()
-        if f==None:
-            self.close.value=1
-            return None
-        return self.__pretty_depth_cv(f[0])
+        depth_frame=None
+        while not depth_frame:
+            frames = self.pipeline.wait_for_frames()
+            depth_frame = frames.get_depth_frame()
+        depth_image = np.asanyarray(depth_frame.get_data())
+        return depth_image
 
 
     def get_color_image(self):
-        f=freenect.sync_get_video()
-        if f==None:
-            self.close.value=1
-            return None
-        return self.__video_cv(f[0])        
+        color_frame=None
+        while not color_frame:
+            frames = self.pipeline.wait_for_frames()
+            color_frame = frames.get_color_frame()
+        color_image = np.asanyarray(color_frame.get_data())
+        return color_image     
 
 
-    def __pretty_depth(self,depth):
-        """Converts depth into a 'nicer' format for display
+    def __init_sensor__(self):
+        pipeline=None
+        try:
+            # Configure depth and color streams
+            pipeline = rs.pipeline()
+            config = rs.config()
 
-        This is abstracted to allow for experimentation with normalization
+            # Get device product line for setting a supporting resolution
+            pipeline_wrapper = rs.pipeline_wrapper(pipeline)
+            pipeline_profile = config.resolve(pipeline_wrapper)
+            device = pipeline_profile.get_device()
 
-        Args:
-            depth: A numpy array with 2 bytes per pixel
-
-        Returns:
-            A numpy array that has been processed with unspecified datatype
-        """
-        np.clip(depth, 0, 2**10 - 1, depth)
-        depth >>= 2
-        depth = depth.astype(np.uint8)
-        return depth
-
-
-    def __pretty_depth_cv(self,depth):
-        """Converts depth into a 'nicer' format for display
-
-        This is abstracted to allow for experimentation with normalization
-
-        Args:
-            depth: A numpy array with 2 bytes per pixel
-
-        Returns:
-            A numpy array with unspecified datatype
-        """
-        return self.__pretty_depth(depth)
-
-
-    def __video_cv(self,video):
-        """Converts video into a BGR format for display
-
-        This is abstracted out to allow for experimentation
-
-        Args:
-            video: A numpy array with 1 byte per pixel, 3 channels RGB
-
-        Returns:
-            A numpy array with with 1 byte per pixel, 3 channels BGR
-        """
-        return video[:, :, ::-1]  # RGB -> BGR
-
-    def __init_kinect__(self):
-        ctx = freenect.init()
-        dev = freenect.open_device(ctx, freenect.num_devices(ctx) - 1)
-
-        if not dev:
-            freenect.error_open_device()
+            config.enable_stream(rs.stream.depth, 640, 480, rs.format.z16, 30)
+            config.enable_stream(rs.stream.color, 640, 480, rs.format.bgr8, 30)
+            pipeline.start(config)
+        except:
+            print("ERRORE: Non è stato rilevato alcun sensore Intel RealSense")
             self.close.value=1
             os._exit(1)
-        return ctx, dev
+        return pipeline
 
     def __del__(self):
-        self.ctx, self.dev= self.__init_kinect__() 
-        self.set_led('RED')
-        self.set_tilt_degs('DOWN')
-        time.sleep(2)
-        self.set_led('OFF')
-        freenect.close_device(self.dev)
-        freenect.shutdown(self.ctx)
+        if self.pipeline:
+            self.pipeline.stop()
+        
 
-    def set_led(self, color):
-        color=color.upper()
-        if color not in accept_color.keys():
-            print("Color must be in corret form. \ne.g. " + str(accept_color.keys()))
-        else:
-            freenect.set_led(self.dev, accept_color[color])
-
-    def set_tilt_degs(self, degree):
-        if degree in accept_positions.keys():
-            degree = accept_positions[degree]
-
-        if not accept_positions["DOWN"]<=degree<=accept_positions["UP"] :
-            print("Degree angle must be beetween -30 and 30")
-        else:
-            freenect.set_tilt_degs(self.dev, degree)
-                    
 def array_to_image(image,shape):
     i = np.frombuffer(image.get_obj(), dtype=np.uint8)
     i.shape = shape
@@ -364,8 +259,8 @@ def main():
 
     close = Value('i',  0)
 
-    video_player=Video_player(close, image, depth, merged, roi, i_shape, d_shape, m_shape, show_video, show_depth, show_merged)
-    video_player.run()
+    sensor_video_player=Sensor_video_player(close, image, depth, merged, roi, i_shape, d_shape, m_shape, show_video, show_depth, show_merged)
+    sensor_video_player.run()
 
 
 if __name__=="__main__":

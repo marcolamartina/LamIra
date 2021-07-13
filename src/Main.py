@@ -1,6 +1,13 @@
 from Controller.Controller import Controller
 from Video_player.Video_player import Video_player
-from Sensor.Kinect import Video_player,COLOR_VIDEO_RESOLUTION,DEPTH_VIDEO_RESOLUTION
+from Sensor.Kinect import Sensor_video_player as SVP_Kinect
+from Sensor.Kinect import COLOR_VIDEO_RESOLUTION as COLOR_VIDEO_RESOLUTION_Kinect
+from Sensor.Kinect import DEPTH_VIDEO_RESOLUTION as DEPTH_VIDEO_RESOLUTION_Kinect
+
+
+from Sensor.RealSense import Sensor_video_player as SVP_RealSense
+from Sensor.RealSense import COLOR_VIDEO_RESOLUTION as COLOR_VIDEO_RESOLUTION_RealSense 
+from Sensor.RealSense import DEPTH_VIDEO_RESOLUTION as DEPTH_VIDEO_RESOLUTION_RealSense
 from Intent_classification.Intent_classification import BERT_Arch
 from multiprocessing import Process, Value, Lock, Array
 import os
@@ -26,8 +33,11 @@ def logic_start(close, video_id, lock, videos, default, name, image, depth, merg
     controller=Controller(newstdin, close, verbose, show_assistent, play_audio, transcription, microphone, language,device_type,video_id, lock, videos, default, name, image, depth, merged, roi, i_shape, d_shape, m_shape, calibration, realsense)
     controller.run()
 
-def video_player_start(close, image, depth, merged, roi, i_shape, d_shape, m_shape, show_video, show_depth, show_merged, calibration):
-    video_player=Video_player(close, image, depth, merged, roi, i_shape, d_shape, m_shape, show_video, show_depth, show_merged, calibration)
+def sensor_video_player_start(close, image, depth, merged, roi, i_shape, d_shape, m_shape, show_video, show_depth, show_merged, calibration):
+    if realsense:
+        video_player=SVP_RealSense(close, image, depth, merged, roi, i_shape, d_shape, m_shape, show_video, show_depth, show_merged, calibration)
+    else:
+        video_player=SVP_Kinect(close, image, depth, merged, roi, i_shape, d_shape, m_shape, show_video, show_depth, show_merged, calibration)
     video_player.run()
 
 def video_player_start(close, video_id, lock, videos, default, name):
@@ -77,6 +87,13 @@ def main():
     close = Value('i',  0)
     lock = Lock()
 
+    if realsense:
+        COLOR_VIDEO_RESOLUTION=COLOR_VIDEO_RESOLUTION_RealSense
+        DEPTH_VIDEO_RESOLUTION=DEPTH_VIDEO_RESOLUTION_RealSense
+    else:
+        COLOR_VIDEO_RESOLUTION=COLOR_VIDEO_RESOLUTION_Kinect
+        DEPTH_VIDEO_RESOLUTION=DEPTH_VIDEO_RESOLUTION_Kinect
+
     i_arr = np.zeros(COLOR_VIDEO_RESOLUTION,dtype=int)
     d_arr = np.zeros(DEPTH_VIDEO_RESOLUTION,dtype=int)
     m_arr = np.zeros(COLOR_VIDEO_RESOLUTION,dtype=int)
@@ -103,17 +120,17 @@ def main():
     logic = Process(target=logic_start,args=(close, video_id, lock, videos, default, name, image, depth, merged, roi, i_shape, d_shape, m_shape, newstdin, calibration, realsense))
     if show_assistent:
         video_player = Process(target=video_player_start,args=(close, video_id, lock, videos, default, name))
-    video_player = Process(target=video_player_start,args=(close, image, depth, merged, roi, i_shape, d_shape, m_shape, show_video, show_depth, show_merged, calibration))
+    sensor_video_player = Process(target=sensor_video_player_start,args=(close, image, depth, merged, roi, i_shape, d_shape, m_shape, show_video, show_depth, show_merged, calibration))
 
     logic.start()
     if show_assistent:
         video_player.start()
-    video_player.start()
+    sensor_video_player.start()
     
     logic.join()
     if show_assistent:
         video_player.join()
-    video_player.join() 
+    sensor_video_player.join() 
 
 if __name__=="__main__":
     main()

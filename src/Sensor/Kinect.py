@@ -118,7 +118,7 @@ class Kinect:
 
 
     
-class Video_player:
+class Sensor_video_player:
     def __init__(self, close, i_arr, d_arr, m_arr, roi, i_shape, d_shape, m_shape, show_video, show_depth, show_merged, calibration):
         self.i_arr=i_arr
         self.d_arr=d_arr
@@ -133,7 +133,8 @@ class Video_player:
         self.close=close
         self.ctx, self.dev= self.__init_kinect__()        
         self.set_led('GREEN')
-        #self.set_tilt_degs(-22)
+        self.set_tilt_degs('UP')
+        self.set_tilt_degs('DOWN')
         freenect.close_device(self.dev)
         freenect.shutdown(self.ctx)
         self.calibration=calibration
@@ -293,7 +294,7 @@ class Video_player:
         dev = freenect.open_device(ctx, freenect.num_devices(ctx) - 1)
 
         if not dev:
-            freenect.error_open_device()
+            print("ERRORE: Non è stato rilevato alcun sensore Kinect")
             self.close.value=1
             os._exit(1)
         return ctx, dev
@@ -357,8 +358,8 @@ def main():
 
     close = Value('i',  0)
 
-    video_player=Video_player(close, image, depth, merged, roi, i_shape, d_shape, m_shape, show_video, show_depth, show_merged)
-    video_player.run()
+    sensor_video_player=Sensor_video_player(close, image, depth, merged, roi, i_shape, d_shape, m_shape, show_video, show_depth, show_merged)
+    sensor_video_player.run()
 
 
 if __name__=="__main__":
