@@ -139,7 +139,8 @@ class Kinect_video_player:
         self.close=close
         self.ctx, self.dev= self.__init_kinect__()        
         self.set_led('GREEN')
-        #self.set_tilt_degs(-22)
+        self.set_tilt_degs('UP')
+        self.set_tilt_degs('DOWN')
         freenect.close_device(self.dev)
         freenect.shutdown(self.ctx)
         self.calibration=calibration

@@ -103,6 +103,7 @@ class Grounding:
                 src=os.path.join(data_dir_base_knowledge,filename)
                 dst=os.path.join(data_dir_knowledge,space_name,filename)
                 copyfile(src, dst)
+        self.load_knowledge()
             
 
 

@@ -362,7 +362,7 @@ def main(mod):
             '''
             cv2.imshow("merged", merged)
             cv2.waitKey(0)
-            cv2.imwrite(path_save_roi+"/second_apporch_segmentation_result.png", merged)  
+            cv2.imwrite(path_save_roi+"/masked_depth.png", ip.apply_mask(mask, depth))  
 
 
             exit(0)
