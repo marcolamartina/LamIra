@@ -1,6 +1,6 @@
 from Controller.Controller import Controller
 from Video_player.Video_player import Video_player
-from Kinect.Kinect import Kinect_video_player,COLOR_VIDEO_RESOLUTION,DEPTH_VIDEO_RESOLUTION
+from Sensor.Kinect import Video_player,COLOR_VIDEO_RESOLUTION,DEPTH_VIDEO_RESOLUTION
 from Intent_classification.Intent_classification import BERT_Arch
 from multiprocessing import Process, Value, Lock, Array
 import os
@@ -19,15 +19,16 @@ show_assistent=True
 play_audio=True
 transcription=True
 microphone=True
+realsense=False
 
 
-def logic_start(close, video_id, lock, videos, default, name, image, depth, merged, roi, i_shape, d_shape, m_shape, newstdin, calibration):
-    controller=Controller(newstdin, close, verbose, show_assistent, play_audio, transcription, microphone, language,device_type,video_id, lock, videos, default, name, image, depth, merged, roi, i_shape, d_shape, m_shape, calibration)
+def logic_start(close, video_id, lock, videos, default, name, image, depth, merged, roi, i_shape, d_shape, m_shape, newstdin, calibration, realsense):
+    controller=Controller(newstdin, close, verbose, show_assistent, play_audio, transcription, microphone, language,device_type,video_id, lock, videos, default, name, image, depth, merged, roi, i_shape, d_shape, m_shape, calibration, realsense)
     controller.run()
 
-def kinect_video_player_start(close, image, depth, merged, roi, i_shape, d_shape, m_shape, show_video, show_depth, show_merged, calibration):
-    kinect_video_player=Kinect_video_player(close, image, depth, merged, roi, i_shape, d_shape, m_shape, show_video, show_depth, show_merged, calibration)
-    kinect_video_player.run()
+def video_player_start(close, image, depth, merged, roi, i_shape, d_shape, m_shape, show_video, show_depth, show_merged, calibration):
+    video_player=Video_player(close, image, depth, merged, roi, i_shape, d_shape, m_shape, show_video, show_depth, show_merged, calibration)
+    video_player.run()
 
 def video_player_start(close, video_id, lock, videos, default, name):
     video_player=Video_player(close, video_id, lock, videos, default, name)
@@ -54,9 +55,10 @@ def main():
     parser.add_argument('-a','--audio', action='store_false',help="disable audio output")
     parser.add_argument('-t','--transcription', action='store_false',help="disable transcription of audio input")
     parser.add_argument('-m','--microphone', action='store_false',help="disable vocal input")
+    parser.add_argument('-r','--realsense', action='store_true',help="use Intel RealSense")
     args = parser.parse_args()
 
-    global verbose, show_video, show_depth, show_merged, show_assistent, play_audio, transcription, microphone
+    global verbose, show_video, show_depth, show_merged, show_assistent, play_audio, transcription, microphone, realsense
     verbose=args.verbose
     show_video=args.video
     show_depth=args.depth
@@ -65,6 +67,7 @@ def main():
     play_audio=args.audio
     transcription=args.transcription
     microphone=args.microphone
+    realsense=args.realsense
 
 
     name="LAMIRA"
@@ -97,20 +100,20 @@ def main():
 
     newstdin = sys.stdin.fileno()
 
-    logic = Process(target=logic_start,args=(close, video_id, lock, videos, default, name, image, depth, merged, roi, i_shape, d_shape, m_shape, newstdin, calibration))
+    logic = Process(target=logic_start,args=(close, video_id, lock, videos, default, name, image, depth, merged, roi, i_shape, d_shape, m_shape, newstdin, calibration, realsense))
     if show_assistent:
         video_player = Process(target=video_player_start,args=(close, video_id, lock, videos, default, name))
-    kinect_video_player = Process(target=kinect_video_player_start,args=(close, image, depth, merged, roi, i_shape, d_shape, m_shape, show_video, show_depth, show_merged, calibration))
+    video_player = Process(target=video_player_start,args=(close, image, depth, merged, roi, i_shape, d_shape, m_shape, show_video, show_depth, show_merged, calibration))
 
     logic.start()
     if show_assistent:
         video_player.start()
-    kinect_video_player.start()
+    video_player.start()
     
     logic.join()
     if show_assistent:
         video_player.join()
-    kinect_video_player.join() 
+    video_player.join() 
 
 if __name__=="__main__":
     main()

@@ -7,7 +7,7 @@ import signal
 import random
 import time
 if __package__:
-    from Kinect.Image_processing import Image_processing
+    from Sensor.Image_processing import Image_processing
 else:
     from Image_processing import Image_processing
 from contextlib import contextmanager
@@ -60,13 +60,7 @@ def stderr_redirected(to=os.devnull, stderr=None):
             os.dup2(copied.fileno(), stderr_fd)  # $ exec >&copied
 
 
-
-try:
-    from google.colab import drive
-    drive.mount("/content/drive/")
-    data_dir_images = "/content/drive/My Drive/Tesi/Media/Images/"
-except:
-    data_dir_images =os.path.join(os.path.dirname(__file__),"..","..","Media","Images")  
+data_dir_images =os.path.join(os.path.dirname(__file__),"..","..","Media","Images")  
 
 
 class Kinect:
@@ -124,7 +118,7 @@ class Kinect:
 
 
     
-class Kinect_video_player:
+class Video_player:
     def __init__(self, close, i_arr, d_arr, m_arr, roi, i_shape, d_shape, m_shape, show_video, show_depth, show_merged, calibration):
         self.i_arr=i_arr
         self.d_arr=d_arr
@@ -139,8 +133,7 @@ class Kinect_video_player:
         self.close=close
         self.ctx, self.dev= self.__init_kinect__()        
         self.set_led('GREEN')
-        self.set_tilt_degs('UP')
-        self.set_tilt_degs('DOWN')
+        #self.set_tilt_degs(-22)
         freenect.close_device(self.dev)
         freenect.shutdown(self.ctx)
         self.calibration=calibration
@@ -364,8 +357,8 @@ def main():
 
     close = Value('i',  0)
 
-    kinect_video_player=Kinect_video_player(close, image, depth, merged, roi, i_shape, d_shape, m_shape, show_video, show_depth, show_merged)
-    kinect_video_player.run()
+    video_player=Video_player(close, image, depth, merged, roi, i_shape, d_shape, m_shape, show_video, show_depth, show_merged)
+    video_player.run()
 
 
 if __name__=="__main__":
