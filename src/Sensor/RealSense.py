@@ -128,7 +128,8 @@ class Sensor_video_player:
                     return
 
                 # Convert images to numpy arrays
-                depth = np.asanyarray(depth_frame.get_data())
+                depth_np = np.asanyarray(depth_frame.get_data())
+                depth = self.__pretty_depth(depth_np)
                 image = np.asanyarray(color_frame.get_data())
                 
                 image=self.image_processing.homography(image,depth)
@@ -187,7 +188,23 @@ class Sensor_video_player:
             frames = self.pipeline.wait_for_frames()
             depth_frame = frames.get_depth_frame()
         depth_image = np.asanyarray(depth_frame.get_data())
-        return depth_image
+        return self.__pretty_depth(depth_image)
+
+    def __pretty_depth(self,depth):
+        """Converts depth into a 'nicer' format for display
+
+        This is abstracted to allow for experimentation with normalization
+
+        Args:
+            depth: A numpy array with 2 bytes per pixel
+
+        Returns:
+            A numpy array that has been processed with unspecified datatype
+        """
+        #np.clip(depth, 0, 2**10 - 1, depth)
+        #depth >>= 2
+        #depth = depth.astype(np.uint8)
+        return depth
 
 
     def get_color_image(self):

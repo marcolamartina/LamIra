@@ -134,10 +134,13 @@ class Sensor_video_player:
         self.ctx, self.dev= self.__init_kinect__()        
         self.set_led('GREEN')
         self.set_tilt_degs('UP')
+        time.sleep(3)
         self.set_tilt_degs('DOWN')
+        time.sleep(3)
         freenect.close_device(self.dev)
         freenect.shutdown(self.ctx)
         self.calibration=calibration
+        time.sleep(5)
         self.image_processing=Image_processing(self.get_depth_image())                
 
     def run(self):
