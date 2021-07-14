@@ -9,7 +9,7 @@ pip3 install matplotlib
 if [[ "$OSTYPE" == "darwin"* ]]; then
     brew install git
 elif [[ "$OSTYPE" == "linux-gnu"* ]]; then
-    sudo apt-get install git
+    sudo apt-get install git -y
 fi
 
 # Speech_to_text
@@ -17,11 +17,11 @@ pip3 install SpeechRecognition
 if [[ "$OSTYPE" == "darwin"* ]]; then
     brew install portaudio --HEAD
 elif [[ "$OSTYPE" == "linux-gnu"* ]]; then
-    sudo apt-get install libpython3.8-dev
-    sudo apt-get install portaudio19-dev
+    sudo apt-get install libpython3.8-dev -y
+    sudo apt-get install portaudio19-dev -y
     sudo apt-get install python3-pyaudio -y
-    sudo apt-get install libasound2-dev
-    sudo apt-get install ffmpeg
+    sudo apt-get install libasound2-dev -y
+    sudo apt-get install ffmpeg -y
 fi
 pip3 install pyaudio
 
@@ -30,7 +30,7 @@ pip3 install pyaudio
 if [[ "$OSTYPE" == "darwin"* ]]; then
     brew install ffmpeg
 elif [[ "$OSTYPE" == "linux-gnu"* ]]; then
-    sudo apt-get install ffmpeg
+    sudo apt-get install ffmpeg -y
 fi
 pip3 install gtts
 pip3 install pydub
@@ -55,9 +55,9 @@ if [[ "$OSTYPE" == "darwin"* ]]; then
     # install CMake from https://cmake.org/download/
     
 elif [[ "$OSTYPE" == "linux-gnu"* ]]; then
-    sudo apt-get install git cmake build-essential libusb-1.0-0-dev
-    sudo apt-get install libfreenect-bin
-    sudo apt-get install libfreenect-dev
+    sudo apt-get install git cmake build-essential libusb-1.0-0-dev -y
+    sudo apt-get install libfreenect-bin -y
+    sudo apt-get install libfreenect-dev -y
 fi
 
 pip3 install cython
@@ -81,8 +81,11 @@ sudo python3 setup.py install
 # shape extractor
 if [[ "$OSTYPE" == "linux-gnu"* ]]; then
     sudo apt-get install libpcl-dev -y
-    sudo apt install gcc-10 gcc-10-base gcc-10-doc g++-10
-    sudo apt install libstdc++-10-dev libstdc++-10-doc
+    sudo add-apt-repository ppa:ubuntu-toolchain-r/test
+    sudo apt-get update
+    sudo apt install gcc-10 -y
+    sudo apt install gcc-10 gcc-10-base gcc-10-doc g++-10 -y
+    sudo apt install libstdc++-10-dev libstdc++-10-doc -y
 elif [[ "$OSTYPE" == "darwin"* ]]; then
     # doesn't work
     brew install pcl
@@ -90,9 +93,12 @@ fi
 git clone https://github.com/Sirokujira/python-pcl.git
 cd python-pcl
 python3 setup.py build_ext -i # Setup modificato
-python3 setup.py install
+sudo python3 setup.py install
 
 # texture extractor
+if [[ "$OSTYPE" == "linux-gnu"* ]]; then
+    sudo apt-get install python-numpy
+fi
 pip3 install mahotas==1.2.0
 
 # use double monitor
