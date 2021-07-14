@@ -1,6 +1,6 @@
 #!/bin/bash
 # pip
-sudo apt install python3-pip
+sudo apt install python3-pip -y
 
 # matplotlib
 pip3 install matplotlib
@@ -17,6 +17,7 @@ pip3 install SpeechRecognition
 if [[ "$OSTYPE" == "darwin"* ]]; then
     brew install portaudio --HEAD
 elif [[ "$OSTYPE" == "linux-gnu"* ]]; then
+    sudo apt-get install libpython3.8-dev
     sudo apt-get install portaudio19-dev
     sudo apt-get install python3-pyaudio -y
     sudo apt-get install libasound2-dev
@@ -42,8 +43,9 @@ if [[ "$OSTYPE" == "darwin"* ]]; then
     curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh;
     source $HOME/.cargo/env
 elif [[ "$OSTYPE" == "linux-gnu"* ]]; then
-    pip3 install torch==1.8.0+cpu torchvision==0.9.0+cpu torchaudio==0.8.0 -f https://download.pytorch.org/whl/torch_stable.html
+    pip3 install torch==1.8.0+cpu torchvision==0.9.0+cpu torchaudio==0.8.0 -f https://download.pytorch.org/whl/torch_stable.html --no-cache-dir
 fi
+pip3 install --upgrade pip
 pip3 install transformers==3
 
 # Kinect
@@ -55,6 +57,7 @@ if [[ "$OSTYPE" == "darwin"* ]]; then
 elif [[ "$OSTYPE" == "linux-gnu"* ]]; then
     sudo apt-get install git cmake build-essential libusb-1.0-0-dev
     sudo apt-get install libfreenect-bin
+    sudo apt-get install libfreenect-dev
 fi
 
 pip3 install cython
@@ -81,7 +84,7 @@ if [[ "$OSTYPE" == "linux-gnu"* ]]; then
     sudo apt install gcc-10 gcc-10-base gcc-10-doc g++-10
     sudo apt install libstdc++-10-dev libstdc++-10-doc
 elif [[ "$OSTYPE" == "darwin"* ]]; then
-    # don't work
+    # doesn't work
     brew install pcl
 fi
 git clone https://github.com/Sirokujira/python-pcl.git
