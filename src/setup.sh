@@ -94,7 +94,7 @@ pip3 install mahotas==1.2.0
 
 # use double monitor
 pip3 install screeninfo
-
+pip3 install pyrealsense2
 
 
 
