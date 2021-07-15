@@ -130,7 +130,7 @@ def save_audio():
     for folder,message_list in dict_message.items():
         for i,message in enumerate(message_list):
             p=os.path.join(path,folder,folder.lower()+"_message_"+str(i))
-            text_to_speech.save(message, p)
+            text_to_speech.save(message.lower(), p)
             with open(p+".txt","w") as f:
                 f.write(message)
 
