@@ -104,8 +104,10 @@ def save_audio():
     undefined_message_list=["Non ho ben capito. Che hai detto?", "Mi spiace ho dei dubbi, puoi ripetere?", "Puoi ripetere quello che hai detto?", "Scusami, non ho compreso quello che hai detto, puoi ripetere?", "I miei microfoni sono sporchi, devo andare dall'hexorino, puoi dirlo ad alta voce?", "Non ti ho sentito, mi sa che devo comprarmi un amplifon. Puoi ripetere?"]
     query_message_list=["Come posso aiutarti?", "Come posso esserti utile?", "In cosa posso aiutarti?", "Di cosa hai bisogno?", "Cosa posso fare per te?"]
     cannot_answer_message_list=["Purtroppo non posso rispondere alla tua domanda.", "Ancora non so aiutarti.", "Non posso esaudire la tua richiesta.", "Non so come aiutarti", "Non riesco a trovare una risposta alla tua domanda.", "Scusami, non posso aiutarti."]
-    training_mode_list=["Hai attivato la modalità addestramento", "Sei entrato nella modalità addestramento", "Benvenuto nella modalità addestramento" ]
-    query_mode_list=[s.replace("addestramento","query") for s in training_mode_list]
+    #training_mode_list=["Hai attivato la modalità addestramento", "Sei entrato nella modalità addestramento", "Benvenuto nella modalità addestramento" ]
+    #query_mode_list=[s.replace("addestramento","query") for s in training_mode_list]
+    training_mode_list=["Ok sono pronto ad imparare", "Va bene fammi imparare qualcosa" ]
+    query_mode_list=["Ok chiedimi quello che vuoi", "Va bene puoi chiedermi ciò che vuoi" ]
     training_request_list=["Cosa vuoi insegnarmi?","Cosa posso imparare?","Cosa vuoi farmi vedere?","Cosa posso apprendere?"]
     color_label_query_list=["Come si chiama questo colore?","Che nome ha questo colore?","Che colore è questo?"]
     general_label_query_list=[s.replace("colore","oggetto") for s in color_label_query_list]
@@ -127,7 +129,7 @@ def save_audio():
                     "General_label_query":general_label_query_list}
     for folder,message_list in dict_message.items():
         for i,message in enumerate(message_list):
-            p=path+folder+"/"+folder.lower()+"_message_"+str(i)
+            p=os.path.join(path,folder,folder.lower()+"_message_"+str(i))
             text_to_speech.save(message, p)
             with open(p+".txt","w") as f:
                 f.write(message)
@@ -135,7 +137,7 @@ def save_audio():
 def main():
     t=Text_to_speech()
     t.speak("ciao")
-    #save_audio()
+    save_audio()
 
 if __name__=="__main__":
     main()    
