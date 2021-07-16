@@ -21,16 +21,6 @@ SMOOTHNESS_MEASURE_NUMBINS = 8                  # Number of bins in histogram. W
 NNRADIUS = 0.004                                # Used in Local Convexity and Smoothness measure for local neighborhood finding
 
 
-try:
-    from google.colab import drive
-    drive.mount("/content/drive/")
-    data_dir_shape_extractor = "/content/drive/My Drive/Tesi/Code/Grounding/"
-    data_dir_images = "/content/drive/My Drive/Tesi/Media/Images/"
-except:
-    data_dir_shape_extractor = os.path.dirname(__file__)
-    data_dir_images = os.path.join(data_dir_shape_extractor,"..","..","Datasets","rgbd-dataset")
-    data_dir_images = os.path.join(data_dir_images,random.choice([f.name for f in os.scandir(data_dir_images) if f.is_dir() and not f.name.startswith("_")]))
-    data_dir_images = os.path.join(data_dir_images,random.choice([f.name for f in os.scandir(data_dir_images) if f.is_dir() and not f.name.startswith("_")]))
 
 
 class Shape_extractor:
@@ -451,6 +441,19 @@ class Shape_extractor:
         return np.max(gm.means_[:,0])/180  #normalized  
 
 def main():
+
+    try:
+        from google.colab import drive
+        drive.mount("/content/drive/")
+        data_dir_shape_extractor = "/content/drive/My Drive/Tesi/Code/Grounding/"
+        data_dir_images = "/content/drive/My Drive/Tesi/Media/Images/"
+    except:
+        data_dir_shape_extractor = os.path.dirname(__file__)
+        data_dir_images = os.path.join(data_dir_shape_extractor,"..","..","Datasets","rgbd-dataset")
+        data_dir_images = os.path.join(data_dir_images,random.choice([f.name for f in os.scandir(data_dir_images) if f.is_dir() and not f.name.startswith("_")]))
+        data_dir_images = os.path.join(data_dir_images,random.choice([f.name for f in os.scandir(data_dir_images) if f.is_dir() and not f.name.startswith("_")]))
+
+
     def get_image(filename,color=True, image_path=data_dir_images ):
         path=os.path.join(image_path,filename)
         if not color:

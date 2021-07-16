@@ -19,21 +19,6 @@ else:
     from Shape_extractor import Shape_extractor
     from Texture_extractor import Texture_extractor 
 
-try:
-    from google.colab import drive
-    drive.mount("/content/drive/")
-    data_dir_grounding = "/content/drive/My Drive/Tesi/Code/Grounding/"
-    data_dir_images = "/content/drive/My Drive/Tesi/Media/Images/"
-except:
-    data_dir_grounding = os.path.dirname(__file__)
-    data_dir_knowledge = os.path.join(data_dir_grounding,"knowledge")
-    data_dir_base_knowledge = os.path.join(data_dir_grounding,"base_knowledge")
-    data_dir_images = os.path.join(data_dir_grounding,"..","..","Datasets","rgbd-dataset")
-    data_dir_images_captured = os.path.join(data_dir_images, "captured")
-    #data_dir_images_captured = os.path.join(data_dir_images_captured,random.choice([f.name for f in os.scandir(data_dir_images_captured) if f.is_dir() and not f.name.startswith("_")]))
-    #data_dir_images_captured = os.path.join(data_dir_images_captured,random.choice([f.name for f in os.scandir(data_dir_images_captured) if f.is_dir() and not f.name.startswith("_")]))
-    data_dir_images = os.path.join(data_dir_images,random.choice([f.name for f in os.scandir(data_dir_images) if f.is_dir() and not f.name.startswith("_")]))
-    data_dir_images = os.path.join(data_dir_images,random.choice([f.name for f in os.scandir(data_dir_images) if f.is_dir() and not f.name.startswith("_")]))
 
 def round_list(l):
     if not l:
@@ -521,7 +506,23 @@ def learn_color():
 
 
                 
-if __name__=="__main__":       
+if __name__=="__main__": 
+    try:
+        from google.colab import drive
+        drive.mount("/content/drive/")
+        data_dir_grounding = "/content/drive/My Drive/Tesi/Code/Grounding/"
+        data_dir_images = "/content/drive/My Drive/Tesi/Media/Images/"
+    except:
+        data_dir_grounding = os.path.dirname(__file__)
+        data_dir_knowledge = os.path.join(data_dir_grounding,"knowledge")
+        data_dir_base_knowledge = os.path.join(data_dir_grounding,"base_knowledge")
+        data_dir_images = os.path.join(data_dir_grounding,"..","..","Datasets","rgbd-dataset")
+        data_dir_images_captured = os.path.join(data_dir_images, "captured")
+        #data_dir_images_captured = os.path.join(data_dir_images_captured,random.choice([f.name for f in os.scandir(data_dir_images_captured) if f.is_dir() and not f.name.startswith("_")]))
+        #data_dir_images_captured = os.path.join(data_dir_images_captured,random.choice([f.name for f in os.scandir(data_dir_images_captured) if f.is_dir() and not f.name.startswith("_")]))
+        data_dir_images = os.path.join(data_dir_images,random.choice([f.name for f in os.scandir(data_dir_images) if f.is_dir() and not f.name.startswith("_")]))
+        data_dir_images = os.path.join(data_dir_images,random.choice([f.name for f in os.scandir(data_dir_images) if f.is_dir() and not f.name.startswith("_")]))
+        
     #learn_color()
     for _ in range(1):
         data_dir_images_captured = os.path.join(data_dir_images_captured,random.choice([f.name for f in os.scandir(data_dir_images_captured) if f.is_dir() and not f.name.startswith("_")]))
