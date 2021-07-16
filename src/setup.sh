@@ -17,6 +17,8 @@ pip3 install scipy
 # opencv
 pip3 install opencv-contrib-python
 
+
+
 # git
 if [[ "$OSTYPE" == "darwin"* ]]; then
     brew install git
@@ -67,6 +69,7 @@ if [[ "$OSTYPE" == "darwin"* ]]; then
     # install CMake from https://cmake.org/download/
     
 elif [[ "$OSTYPE" == "linux-gnu"* ]]; then
+    sudo apt-get install python3-distutils -y
     sudo apt-get install git cmake build-essential libusb-1.0-0-dev -y
     sudo apt-get install libfreenect-bin -y
     sudo apt-get install libfreenect-dev -y
