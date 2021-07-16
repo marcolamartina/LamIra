@@ -5,6 +5,18 @@ sudo apt install python3-pip -y
 # matplotlib
 pip3 install matplotlib
 
+# numpy
+pip3 install numpy
+
+# sklearn
+pip3 install sklearn
+
+# scipy
+pip3 install scipy
+
+# opencv
+pip3 install opencv-contrib-python
+
 # git
 if [[ "$OSTYPE" == "darwin"* ]]; then
     brew install git
