@@ -242,14 +242,17 @@ class Controller:
         if intent.split("_")[0]=="color":
             input_list=self.concatenate_color(input_list)
         result=[input_list[0]]
-        spaces=[["colore"],["forma di"],["materiale","tessitura"]]
+        spaces=[["colore"],["forma"],["materiale","tessitura"]]
         for j,s in enumerate(spaces):
             for l in s:
                 if l in input_list:
                     label=l
                     break
             if np.any([l in input_list for l in s]):
-                result.append(input_list[input_list.index(label)+1]) 
+                if j==1:
+                    result.append(input_list[input_list.index(label)+2])
+                else:     
+                    result.append(input_list[input_list.index(label)+1]) 
         return result                      
 
     def run(self):
