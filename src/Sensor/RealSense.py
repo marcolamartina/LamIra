@@ -188,7 +188,7 @@ class Sensor_video_player:
             frames = self.pipeline.wait_for_frames()
             depth_frame = frames.get_depth_frame()
         depth_image = np.asanyarray(depth_frame.get_data())
-        return self.__pretty_depth(depth_image)
+        return depth_image, depth_frame
 
     def __pretty_depth(self,depth):
         """Converts depth into a 'nicer' format for display
@@ -277,8 +277,11 @@ def main():
     close = Value('i',  0)
 
     sensor_video_player=Sensor_video_player(close, image, depth, merged, roi, i_shape, d_shape, m_shape, show_video, show_depth, show_merged)
-    sensor_video_player.run()
-
+    #sensor_video_player.run()
+    depth, frame=sensor_video_player.get_depth_image()
+    
+    np.save(data_dir_images+"depth_realsense.npy", depth)    
+    np.save(data_dir_images+"frame_realsense.npy", frame)
 
 if __name__=="__main__":
     main()
