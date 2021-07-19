@@ -120,7 +120,8 @@ class Sensor_video_player:
                     continue
                 i = array_to_image(self.i_arr,self.i_shape)
                 d = array_to_image(self.d_arr,self.d_shape)
-                m = array_to_image(self.m_arr,self.m_shape)
+                m = array_to_image(self.m_arr,self.m_shape)            
+
                 frames = self.pipeline.wait_for_frames()
                 depth_frame = frames.get_depth_frame()
                 color_frame = frames.get_color_frame()
@@ -128,8 +129,7 @@ class Sensor_video_player:
                     return
 
                 # Convert images to numpy arrays
-                depth_np = np.asanyarray(depth_frame.get_data())
-                depth = self.__pretty_depth(depth_np)
+                depth = np.asanyarray(depth_frame.get_data())
                 image = np.asanyarray(color_frame.get_data())
                 
                 image=self.image_processing.homography(image,depth)
@@ -138,6 +138,8 @@ class Sensor_video_player:
                 i[...]=image
                 m[...]=merged
                 merged=self.get_roi(mask,merged)
+                
+
                 if self.show_depth:
                     cv2.imshow('Depth', depth)
                     cv2.moveWindow('Depth',start_x+COLOR_VIDEO_RESOLUTION[1],window_y)
@@ -188,7 +190,7 @@ class Sensor_video_player:
             frames = self.pipeline.wait_for_frames()
             depth_frame = frames.get_depth_frame()
         depth_image = np.asanyarray(depth_frame.get_data())
-        return depth_image, depth_frame
+        return depth_image
 
     def __pretty_depth(self,depth):
         """Converts depth into a 'nicer' format for display

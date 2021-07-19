@@ -7,6 +7,10 @@ from glob import glob
 from sklearn.ensemble import RandomForestClassifier
 from shutil import copyfile
 
+data_dir_grounding = os.path.dirname(__file__)
+data_dir_knowledge = os.path.join(data_dir_grounding,"knowledge")
+data_dir_base_knowledge = os.path.join(data_dir_grounding,"base_knowledge")
+
 if __package__:
     test=False
     from Grounding.Color_extractor import Color_extractor, normalize_color, print_colors
@@ -513,9 +517,6 @@ if __name__=="__main__":
         data_dir_grounding = "/content/drive/My Drive/Tesi/Code/Grounding/"
         data_dir_images = "/content/drive/My Drive/Tesi/Media/Images/"
     except:
-        data_dir_grounding = os.path.dirname(__file__)
-        data_dir_knowledge = os.path.join(data_dir_grounding,"knowledge")
-        data_dir_base_knowledge = os.path.join(data_dir_grounding,"base_knowledge")
         data_dir_images = os.path.join(data_dir_grounding,"..","..","Datasets","rgbd-dataset")
         data_dir_images_captured = os.path.join(data_dir_images, "captured")
         #data_dir_images_captured = os.path.join(data_dir_images_captured,random.choice([f.name for f in os.scandir(data_dir_images_captured) if f.is_dir() and not f.name.startswith("_")]))
