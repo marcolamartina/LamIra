@@ -131,16 +131,22 @@ class Sensor_video_player:
         self.show_depth=show_depth
         self.show_merged=show_merged
         self.close=close
-        self.ctx, self.dev= self.__init_kinect__()        
-        self.set_led('GREEN')
         '''
-        self.set_tilt_degs('UP')
-        time.sleep(3)
+        try:
+            self.ctx, self.dev= self.__init_kinect__()        
+            self.set_led('GREEN')
+            
+            #self.set_tilt_degs('UP')
+            #time.sleep(3)
+            
+            self.set_tilt_degs('DOWN')
+            #time.sleep(3)
+            freenect.close_device(self.dev)
+            freenect.shutdown(self.ctx)
+        except:
+            print("WARNING: Couldn't use Kinect motor and LED.")
         '''
-        self.set_tilt_degs('DOWN')
-        #time.sleep(3)
-        freenect.close_device(self.dev)
-        freenect.shutdown(self.ctx)
+
         self.calibration=calibration
         #time.sleep(5)
         self.image_processing=Image_processing(self.get_depth_image())                
@@ -150,9 +156,10 @@ class Sensor_video_player:
         screen = get_monitors()
         if len(screen)>1:
             start_x=screen[1].width
+            window_y=screen[1].height-COLOR_VIDEO_RESOLUTION[0]
         else:
             start_x=0
-        window_y=1920-COLOR_VIDEO_RESOLUTION[0]
+            window_y=screen[0].height-COLOR_VIDEO_RESOLUTION[0]
         #start_im=np.zeros((COLOR_VIDEO_RESOLUTION[0], COLOR_VIDEO_RESOLUTION[1]))
         if self.show_video:
             cv2.namedWindow('Video')
@@ -305,11 +312,17 @@ class Sensor_video_player:
         return ctx, dev
 
     def __del__(self):
-        self.ctx, self.dev= self.__init_kinect__() 
-        self.set_led('RED')
-        self.set_led('OFF')
-        freenect.close_device(self.dev)
-        freenect.shutdown(self.ctx)
+        pass
+        '''
+        try:
+            self.ctx, self.dev= self.__init_kinect__() 
+            self.set_led('RED')
+            self.set_led('OFF')
+            freenect.close_device(self.dev)
+            freenect.shutdown(self.ctx)
+        except:
+            print("WARNING: Couldn't move down Kinect.")
+        '''
 
     def set_led(self, color):
         color=color.upper()

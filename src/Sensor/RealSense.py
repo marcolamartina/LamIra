@@ -94,9 +94,10 @@ class Sensor_video_player:
         screen = get_monitors()
         if len(screen)>1:
             start_x=screen[1].width
+            window_y=screen[1].height-COLOR_VIDEO_RESOLUTION[0]
         else:
             start_x=0
-        window_y=1920-COLOR_VIDEO_RESOLUTION[0]
+            window_y=screen[0].height-COLOR_VIDEO_RESOLUTION[0]
         #start_im=np.zeros((COLOR_VIDEO_RESOLUTION[0], COLOR_VIDEO_RESOLUTION[1]))
         if self.show_video:
             cv2.namedWindow('Video')
